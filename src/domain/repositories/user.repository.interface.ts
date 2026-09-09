@@ -16,4 +16,5 @@ export interface IUserRepository {
   findById(id: string): Promise<UserEntity | null>;
   findByEmail(email: string): Promise<UserEntity | null>;
   markEmailVerified(id: string, verifiedAt: Date): Promise<UserEntity>;
+  updatePassword(id: string, passwordHash: string): Promise<UserEntity>;
 }

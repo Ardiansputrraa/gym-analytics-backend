@@ -5,6 +5,8 @@ import {
   LoginUseCase,
   VerifyEmailUseCase,
   ResendOtpUseCase,
+  ForgotPasswordUseCase,
+  ResetPasswordUseCase,
 } from '../../application/auth';
 import { OtpType } from '../../domain/enums/otp-type.enum';
 
@@ -14,12 +16,16 @@ describe('AuthController', () => {
   let mockLoginUseCase: { execute: jest.Mock };
   let mockVerifyEmailUseCase: { execute: jest.Mock };
   let mockResendOtpUseCase: { execute: jest.Mock };
+  let mockForgotPasswordUseCase: { execute: jest.Mock };
+  let mockResetPasswordUseCase: { execute: jest.Mock };
 
   beforeEach(async () => {
     mockRegisterUseCase = { execute: jest.fn() };
     mockLoginUseCase = { execute: jest.fn() };
     mockVerifyEmailUseCase = { execute: jest.fn() };
     mockResendOtpUseCase = { execute: jest.fn() };
+    mockForgotPasswordUseCase = { execute: jest.fn() };
+    mockResetPasswordUseCase = { execute: jest.fn() };
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AuthController],
@@ -28,6 +34,8 @@ describe('AuthController', () => {
         { provide: LoginUseCase, useValue: mockLoginUseCase },
         { provide: VerifyEmailUseCase, useValue: mockVerifyEmailUseCase },
         { provide: ResendOtpUseCase, useValue: mockResendOtpUseCase },
+        { provide: ForgotPasswordUseCase, useValue: mockForgotPasswordUseCase },
+        { provide: ResetPasswordUseCase, useValue: mockResetPasswordUseCase },
       ],
     }).compile();
 
@@ -133,6 +141,47 @@ describe('AuthController', () => {
       expect(mockResendOtpUseCase.execute).toHaveBeenCalledWith({
         email: 'test@example.com',
         type: OtpType.EMAIL_VERIFICATION,
+      });
+      expect(result).toEqual(response);
+    });
+  });
+
+  describe('POST /auth/forgot-password', () => {
+    it('should call forgotPasswordUseCase.execute and return response', async () => {
+      const response = {
+        message: 'Password reset code has been sent to your email.',
+      };
+      mockForgotPasswordUseCase.execute.mockResolvedValue(response);
+
+      const result = await authController.forgotPassword({
+        email: 'test@example.com',
+      });
+
+      expect(mockForgotPasswordUseCase.execute).toHaveBeenCalledWith({
+        email: 'test@example.com',
+      });
+      expect(result).toEqual(response);
+    });
+  });
+
+  describe('POST /auth/reset-password', () => {
+    it('should call resetPasswordUseCase.execute and return response', async () => {
+      const response = {
+        message:
+          'Password has been reset successfully. You can now login with your new password.',
+      };
+      mockResetPasswordUseCase.execute.mockResolvedValue(response);
+
+      const result = await authController.resetPassword({
+        email: 'test@example.com',
+        otp: '123456',
+        newPassword: 'NewPassword123!',
+      });
+
+      expect(mockResetPasswordUseCase.execute).toHaveBeenCalledWith({
+        email: 'test@example.com',
+        otp: '123456',
+        newPassword: 'NewPassword123!',
       });
       expect(result).toEqual(response);
     });
