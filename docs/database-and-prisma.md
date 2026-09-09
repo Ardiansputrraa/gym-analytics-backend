@@ -12,7 +12,7 @@ Database project ini menggunakan PostgreSQL dengan pembagian schema domain modul
 datasource db {
   provider = "postgresql"
   schemas  = [
-    "auth",
+    "identity",
     "profile",
     "exercise",
     "workout",
@@ -25,9 +25,10 @@ datasource db {
 ```
 
 Setiap tabel dan enum di `prisma/schema.prisma` dipetakan ke schema terkait, contohnya:
-- `auth.users` dan `auth.otp_tokens` ➔ `@@schema("auth")`
+- `identity.users` dan `identity.otp_tokens` ➔ `@@schema("identity")`
 - `workout.workouts` dan `workout.workout_logs` ➔ `@@schema("workout")`
 - `exercise.exercises` ➔ `@@schema("exercise")`
+
 
 ---
 

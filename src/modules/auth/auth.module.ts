@@ -45,5 +45,3 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
   exports: [...AUTH_USE_CASES, OtpService, JwtModule, JwtAuthGuard],
 })
 export class AuthModule {}
-
-

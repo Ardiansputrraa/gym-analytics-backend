@@ -12,10 +12,7 @@ import {
   USER_REPOSITORY,
   type IUserRepository,
 } from '../../domain/repositories/user.repository.interface';
-import {
-  LoginDto,
-  LoginResponseDto,
-} from '../../modules/auth/schemas';
+import { LoginDto, LoginResponseDto } from '../../modules/auth/schemas';
 
 @Injectable()
 export class LoginUseCase {

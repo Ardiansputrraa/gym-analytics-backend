@@ -26,13 +26,10 @@ export const RegisterSchema = z
       .string()
       .min(8, { message: 'Password must be at least 8 characters long' })
       .max(100, { message: 'Password cannot exceed 100 characters' })
-      .regex(
-        /((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/,
-        {
-          message:
-            'Password must contain at least 1 uppercase letter, 1 lowercase letter, and 1 number or special character',
-        },
-      ),
+      .regex(/((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, {
+        message:
+          'Password must contain at least 1 uppercase letter, 1 lowercase letter, and 1 number or special character',
+      }),
     confirmPassword: z
       .string()
       .min(1, { message: 'Confirm password is required' }),

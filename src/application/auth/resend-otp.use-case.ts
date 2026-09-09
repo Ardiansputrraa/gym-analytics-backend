@@ -12,10 +12,7 @@ import {
 import { OtpType } from '../../domain/enums/otp-type.enum';
 import { OtpService } from './otp.service';
 import { MailService } from '../../infrastructure/mail/mail.service';
-import {
-  ResendOtpDto,
-  ResendOtpResponseDto,
-} from '../../modules/auth/schemas';
+import { ResendOtpDto, ResendOtpResponseDto } from '../../modules/auth/schemas';
 
 @Injectable()
 export class ResendOtpUseCase {
