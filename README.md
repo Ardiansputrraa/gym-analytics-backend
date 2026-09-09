@@ -1,4 +1,4 @@
-﻿# Gym Analytics — Backend
+# Gym Analytics — Backend
 
 > **NestJS + TypeScript + Prisma + PostgreSQL**
 > Backend API for the **Gym Analytics & Body Progress Platform** MVP.
@@ -50,7 +50,7 @@ All metrics are computed deterministically from raw user data — no AI is used.
 | Framework  | NestJS 11 + TypeScript (strict)|
 | ORM        | Prisma 8                       |
 | Database   | PostgreSQL 16                  |
-| Validation | class-validator + class-transformer |
+| Validation | Zod + nestjs-zod               |
 | Config     | @nestjs/config                 |
 | Container  | Docker + Docker Compose        |
 | Pkg Mgr    | pnpm                           |
