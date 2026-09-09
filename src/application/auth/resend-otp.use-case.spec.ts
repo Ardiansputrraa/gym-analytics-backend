@@ -18,6 +18,7 @@ describe('ResendOtpUseCase', () => {
   };
   let mockMailService: {
     sendOtpEmail: jest.Mock;
+    sendPasswordResetEmail: jest.Mock;
   };
 
   beforeEach(async () => {
@@ -34,6 +35,7 @@ describe('ResendOtpUseCase', () => {
 
     mockMailService = {
       sendOtpEmail: jest.fn().mockResolvedValue(undefined),
+      sendPasswordResetEmail: jest.fn().mockResolvedValue(undefined),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -48,7 +50,7 @@ describe('ResendOtpUseCase', () => {
     resendOtpUseCase = module.get<ResendOtpUseCase>(ResendOtpUseCase);
   });
 
-  it('should successfully resend OTP for valid unverified user', async () => {
+  it('should successfully resend OTP for valid unverified user (EMAIL_VERIFICATION)', async () => {
     mockUserRepository.findByEmail.mockResolvedValue(
       new UserEntity({
         id: 'user-uuid-1',
@@ -86,6 +88,44 @@ describe('ResendOtpUseCase', () => {
     expect(result.email).toBe('test@example.com');
   });
 
+  it('should successfully resend OTP for PASSWORD_RESET even if email is verified', async () => {
+    mockUserRepository.findByEmail.mockResolvedValue(
+      new UserEntity({
+        id: 'user-uuid-1',
+        email: 'test@example.com',
+        name: 'Test User',
+        phone: '081234567890',
+        passwordHash: 'hashed_password',
+        role: UserRole.USER,
+        isActive: true,
+        emailVerifiedAt: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        deletedAt: null,
+      }),
+    );
+
+    const result = await resendOtpUseCase.execute({
+      email: 'test@example.com',
+      type: OtpType.PASSWORD_RESET,
+    });
+
+    expect(mockUserRepository.findByEmail).toHaveBeenCalledWith(
+      'test@example.com',
+    );
+    expect(mockOtpService.resendOtp).toHaveBeenCalledWith(
+      'user-uuid-1',
+      OtpType.PASSWORD_RESET,
+    );
+    expect(mockMailService.sendPasswordResetEmail).toHaveBeenCalledWith(
+      'test@example.com',
+      '654321',
+      5,
+    );
+    expect(result.userId).toBe('user-uuid-1');
+    expect(result.email).toBe('test@example.com');
+  });
+
   it('should throw NotFoundException when user does not exist', async () => {
     mockUserRepository.findByEmail.mockResolvedValue(null);
 
@@ -100,7 +140,7 @@ describe('ResendOtpUseCase', () => {
     expect(mockMailService.sendOtpEmail).not.toHaveBeenCalled();
   });
 
-  it('should throw BadRequestException when email is already verified', async () => {
+  it('should throw BadRequestException when email is already verified and type is EMAIL_VERIFICATION', async () => {
     mockUserRepository.findByEmail.mockResolvedValue(
       new UserEntity({
         id: 'user-uuid-1',

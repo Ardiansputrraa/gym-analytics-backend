@@ -52,8 +52,16 @@ export class ResendOtpUseCase {
       type,
     );
 
-    // Send verification email via SMTP
-    await this.mailService.sendOtpEmail(user.email, otp, expiresInMinutes);
+    // Send email via SMTP based on OTP type
+    if (type === OtpType.PASSWORD_RESET) {
+      await this.mailService.sendPasswordResetEmail(
+        user.email,
+        otp,
+        expiresInMinutes,
+      );
+    } else {
+      await this.mailService.sendOtpEmail(user.email, otp, expiresInMinutes);
+    }
 
     return {
       userId: user.id,
