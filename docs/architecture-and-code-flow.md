@@ -87,12 +87,20 @@ Ketika Anda ingin membuat fitur baru (contoh: fitur `Exercise` atau `Workout`), 
 
 ---
 
-### 🔹 Langkah 5: Application Layer (`src/application/<feature>/`)
-1. **Buat Service** di `src/application/<feature>/<feature>.service.ts`:
+### 🔹 Langkah 5: Application Layer (`src/application/<feature>/`) — *Use-Case Pattern*
+1. **Buat Use-Case Class** (1 File = 1 Aksi Bisnis) di `src/application/<feature>/<action>.use-case.ts`:
+   - Contoh: `create-workout.use-case.ts`, `get-workout-history.use-case.ts`.
+   - Gunakan decorator `@Injectable()`.
+   - Hanya miliki 1 public method: `async execute(dto: ...): Promise<...>`
    - Inject repository interface: `@Inject(<FEATURE>_REPOSITORY) private readonly repo: I<Feature>Repository`.
-   - Tulis logika bisnis, validasi aturan domain, dan throw HTTP Exception yang sesuai jika gagal.
-2. **Buat Unit Test** di `src/application/<feature>/<feature>.service.spec.ts`:
-   - Buat mock repository dan uji semua skenario sukses maupun gagal.
+   - Tulis logika bisnis dan validasi aturan domain.
+2. **Buat Unit Test** di `src/application/<feature>/<action>.use-case.spec.ts`:
+   - Buat mock repository dan uji semua skenario sukses maupun gagal untuk use-case tersebut.
+3. **Ekspor Seluruh Use-Case di `src/application/<feature>/index.ts`**:
+   - Ekspor class use case dan kumpulkan ke dalam array:
+     ```typescript
+     export const FEATURE_USE_CASES = [CreateWorkoutUseCase, GetWorkoutHistoryUseCase];
+     ```
 
 ---
 
@@ -100,19 +108,21 @@ Ketika Anda ingin membuat fitur baru (contoh: fitur `Exercise` atau `Workout`), 
 1. **Buat Controller** di `src/modules/<feature>/<feature>.controller.ts`:
    - Gunakan decorator NestJS (`@Controller`, `@Get`, `@Post`, `@Body`, `@Param`).
    - Tambahkan decorator Swagger OpenAPI: `@ApiTags(...)`, `@ApiOperation(...)`, `@ApiResponse(...)`, `@ApiBearerAuth('JWT-auth')`.
-   - Inject `<Feature>Service` dan teruskan data DTO.
+   - Inject use-case terkait dan panggil `this.<action>UseCase.execute(dto)`.
 2. **Buat Controller Unit Test** di `src/modules/<feature>/<feature>.controller.spec.ts`.
 3. **Buat Module** di `src/modules/<feature>/<feature>.module.ts`:
-   - Binding interface repository ke implementasi Prisma:
+   - Daftarkan `...FEATURE_USE_CASES` dan binding interface repository ke implementasi Prisma:
      ```typescript
      providers: [
-       FeatureService,
+       ...FEATURE_USE_CASES,
        {
          provide: FEATURE_REPOSITORY,
          useClass: PrismaFeatureRepository,
        },
-     ]
+     ],
+     exports: [...FEATURE_USE_CASES],
      ```
+
 
 ---
 

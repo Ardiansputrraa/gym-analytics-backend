@@ -67,10 +67,15 @@ Layer murni TypeScript yang tidak terikat framework NestJS atau database:
 ---
 
 ### 📂 `src/application/` (Use-Case & Business Logic Layer)
-Mengatur orkestrasi alur bisnis dan aturan aplikasi:
+Mengatur orkestrasi alur bisnis dan aturan aplikasi menggunakan **Clean Architecture Use-Case Pattern** (`1 Use-Case = 1 File`):
 - **`application/auth/`**:
-  - `auth.service.ts`: Implementasi logika Register, Login, Kirim OTP, Verifikasi Email, dan Resend OTP.
-  - `auth.service.spec.ts`: Unit test untuk `AuthService` (menggunakan Jest mock repository).
+  - `register.use-case.ts` & `.spec.ts`: Use-case registrasi akun baru.
+  - `verify-email.use-case.ts` & `.spec.ts`: Use-case verifikasi OTP email.
+  - `resend-otp.use-case.ts` & `.spec.ts`: Use-case kirim ulang kode OTP.
+  - `login.use-case.ts` & `.spec.ts`: Use-case autentikasi & penerbitan JWT.
+  - `otp.service.ts` & `.spec.ts`: Sub-service pengelola siklus token OTP (generate, attempt limit, expire, invalidation).
+  - `index.ts`: Barrel export seluruh use case & provider array `AUTH_USE_CASES`.
+
 
 ---
 

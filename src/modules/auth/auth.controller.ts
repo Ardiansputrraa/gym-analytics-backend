@@ -1,6 +1,11 @@
 import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { AuthService } from '../../application/auth/auth.service';
+import {
+  RegisterUseCase,
+  LoginUseCase,
+  VerifyEmailUseCase,
+  ResendOtpUseCase,
+} from '../../application/auth';
 import {
   RegisterDto,
   VerifyEmailDto,
@@ -15,7 +20,12 @@ import {
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly registerUseCase: RegisterUseCase,
+    private readonly loginUseCase: LoginUseCase,
+    private readonly verifyEmailUseCase: VerifyEmailUseCase,
+    private readonly resendOtpUseCase: ResendOtpUseCase,
+  ) {}
 
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
@@ -38,7 +48,7 @@ export class AuthController {
     description: 'Email is already registered and verified.',
   })
   async register(@Body() dto: RegisterDto): Promise<RegisterResponseDto> {
-    return this.authService.register(dto);
+    return this.registerUseCase.execute(dto);
   }
 
   @Post('login')
@@ -67,7 +77,7 @@ export class AuthController {
       'Email address is not verified (EMAIL_NOT_VERIFIED) or account is suspended (ACCOUNT_SUSPENDED).',
   })
   async login(@Body() dto: LoginDto): Promise<LoginResponseDto> {
-    return this.authService.login(dto);
+    return this.loginUseCase.execute(dto);
   }
 
   @Post('verify-email')
@@ -93,7 +103,7 @@ export class AuthController {
   async verifyEmail(
     @Body() dto: VerifyEmailDto,
   ): Promise<VerifyEmailResponseDto> {
-    return this.authService.verifyEmail(dto);
+    return this.verifyEmailUseCase.execute(dto);
   }
 
   @Post('resend-otp')
@@ -119,7 +129,8 @@ export class AuthController {
   async resendOtp(
     @Body() dto: ResendOtpDto,
   ): Promise<ResendOtpResponseDto> {
-    return this.authService.resendOtp(dto);
+    return this.resendOtpUseCase.execute(dto);
   }
 }
+
 
