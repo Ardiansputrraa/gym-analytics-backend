@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  Inject,
-  ConflictException,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, Inject, ConflictException, Logger } from '@nestjs/common';
 import * as argon2 from 'argon2';
 import {
   USER_REPOSITORY,
@@ -12,10 +7,7 @@ import {
 import { OtpType } from '../../domain/enums/otp-type.enum';
 import { OtpService } from './otp.service';
 import { MailService } from '../../infrastructure/mail/mail.service';
-import {
-  RegisterDto,
-  RegisterResponseDto,
-} from '../../modules/auth/schemas';
+import { RegisterDto, RegisterResponseDto } from '../../modules/auth/schemas';
 
 @Injectable()
 export class RegisterUseCase {

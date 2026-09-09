@@ -41,7 +41,8 @@ export class AuthController {
   })
   @ApiResponse({
     status: 400,
-    description: 'Validation failed (invalid email format, password too short/simple).',
+    description:
+      'Validation failed (invalid email format, password too short/simple).',
   })
   @ApiResponse({
     status: 409,
@@ -126,11 +127,7 @@ export class AuthController {
     status: 404,
     description: 'Account not found.',
   })
-  async resendOtp(
-    @Body() dto: ResendOtpDto,
-  ): Promise<ResendOtpResponseDto> {
+  async resendOtp(@Body() dto: ResendOtpDto): Promise<ResendOtpResponseDto> {
     return this.resendOtpUseCase.execute(dto);
   }
 }
-
-

@@ -23,7 +23,9 @@ export const ResendOtpResponseSchema = z.object({
 });
 
 export class ResendOtpDto extends createZodDto(ResendOtpSchema) {}
-export class ResendOtpResponseDto extends createZodDto(ResendOtpResponseSchema) {}
+export class ResendOtpResponseDto extends createZodDto(
+  ResendOtpResponseSchema,
+) {}
 
 export type ResendOtpInput = z.infer<typeof ResendOtpSchema>;
 export type ResendOtpResponse = z.infer<typeof ResendOtpResponseSchema>;

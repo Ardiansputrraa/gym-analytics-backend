@@ -8,9 +8,7 @@ export const LoginSchema = z.object({
     .toLowerCase()
     .email({ message: 'Must be a valid email address' })
     .max(255, { message: 'Email cannot exceed 255 characters' }),
-  password: z
-    .string()
-    .min(1, { message: 'Password is required' }),
+  password: z.string().min(1, { message: 'Password is required' }),
 });
 
 export const LoginUserResponseSchema = z.object({

@@ -73,9 +73,9 @@ describe('OtpService', () => {
       );
       expect(mockOtpTokenRepository.create).toHaveBeenCalledWith({
         userId: 'user-uuid-1',
-        tokenHash: expect.any(String),
+        tokenHash: expect.any(String) as string,
         type: OtpType.EMAIL_VERIFICATION,
-        expiresAt: expect.any(Date),
+        expiresAt: expect.any(Date) as Date,
       });
       expect(result.otp).toHaveLength(6);
       expect(result.expiresInMinutes).toBe(5);

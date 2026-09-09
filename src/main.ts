@@ -49,7 +49,11 @@ async function bootstrap() {
   const port = Number(process.env.PORT) || 3000;
   await app.listen(port);
 
-  logger.log(`Gym Analytics API server running on http://localhost:${port}/api/v1`);
-  logger.log(`Swagger documentation available at http://localhost:${port}/api/docs`);
+  logger.log(
+    `Gym Analytics API server running on http://localhost:${port}/api/v1`,
+  );
+  logger.log(
+    `Swagger documentation available at http://localhost:${port}/api/docs`,
+  );
 }
-bootstrap();
+void bootstrap();

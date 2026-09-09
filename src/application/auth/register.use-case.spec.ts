@@ -81,7 +81,7 @@ describe('RegisterUseCase', () => {
     );
     expect(mockUserRepository.create).toHaveBeenCalledWith({
       email: 'test@example.com',
-      passwordHash: expect.any(String),
+      passwordHash: expect.any(String) as string,
       name: 'Test User',
       phone: '081234567890',
     });
