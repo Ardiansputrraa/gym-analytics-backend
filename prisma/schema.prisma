@@ -8,6 +8,9 @@ generator client {
   previewFeatures = ["multiSchema"]
 }
 
+// ============================================================
+// IDENTITY SCHEMA
+// ============================================================
 
 enum UserRole {
   USER
@@ -36,7 +39,9 @@ model User {
   updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt       DateTime? @map("deleted_at") @db.Timestamptz(6)
 
-  otpTokens OtpToken[]
+  otpTokens      OtpToken[]
+  profile        UserProfile?
+  calorieTargets DailyCalorieTarget[]
 
   @@map("users")
   @@schema("identity")
@@ -60,3 +65,88 @@ model OtpToken {
   @@schema("identity")
 }
 
+// ============================================================
+// PROFILE SCHEMA
+// ============================================================
+
+enum Gender {
+  MALE
+  FEMALE
+
+  @@schema("profile")
+}
+
+enum ActivityLevel {
+  SEDENTARY
+  LIGHT
+  MODERATE
+  ACTIVE
+  VERY_ACTIVE
+
+  @@schema("profile")
+}
+
+enum FitnessGoal {
+  FAT_LOSS
+  MAINTENANCE
+  MUSCLE_GAIN
+
+  @@schema("profile")
+}
+
+enum DietPace {
+  RELAXED
+  STANDARD
+  EXTREME
+
+  @@schema("profile")
+}
+
+model UserProfile {
+  id                  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId              String        @unique @map("user_id") @db.Uuid
+  age                 Int           @db.SmallInt
+  gender              Gender
+  heightCm            Decimal       @map("height_cm") @db.Decimal(5, 2)
+  weightKg            Decimal       @map("weight_kg") @db.Decimal(6, 3)
+  activityLevel       ActivityLevel @map("activity_level")
+  fitnessGoal         FitnessGoal   @map("fitness_goal")
+  dietPace            DietPace      @default(STANDARD) @map("diet_pace")
+  checkInIntervalDays Int           @default(30) @map("check_in_interval_days") @db.SmallInt
+  createdAt           DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_profiles")
+  @@schema("profile")
+}
+
+// ============================================================
+// CALORIE SCHEMA
+// ============================================================
+
+model DailyCalorieTarget {
+  id             String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId         String      @map("user_id") @db.Uuid
+  date           DateTime    @db.Date
+  bmr            Decimal     @db.Decimal(8, 2)
+  activityFactor Decimal     @map("activity_factor") @db.Decimal(4, 3)
+  tdee           Decimal     @db.Decimal(8, 2)
+  fitnessGoal    FitnessGoal @default(MAINTENANCE) @map("fitness_goal")
+  dietPace       DietPace    @default(STANDARD) @map("diet_pace")
+  goalAdjustment Int         @default(0) @map("goal_adjustment")
+  targetCalories Int         @map("target_calories")
+  proteinGrams   Int?        @map("protein_grams")
+  carbsGrams     Int?        @map("carbs_grams")
+  fatGrams       Int?        @map("fat_grams")
+  createdAt      DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date], name: "uq_dct_user_date")
+  @@index([userId, date], name: "idx_dct_user_date")
+  @@map("daily_calorie_targets")
+  @@schema("calorie")
+}

@@ -1,0 +1,5 @@
+export enum FitnessGoal {
+  FAT_LOSS = 'FAT_LOSS',
+  MAINTENANCE = 'MAINTENANCE',
+  MUSCLE_GAIN = 'MUSCLE_GAIN',
+}
