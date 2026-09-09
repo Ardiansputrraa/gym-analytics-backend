@@ -1,35 +1,41 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from './auth.controller';
-import { AuthService } from '../../application/auth/auth.service';
+import {
+  RegisterUseCase,
+  LoginUseCase,
+  VerifyEmailUseCase,
+  ResendOtpUseCase,
+} from '../../application/auth';
 import { OtpType } from '../../domain/enums/otp-type.enum';
 
 describe('AuthController', () => {
   let authController: AuthController;
-  let mockAuthService: {
-    register: jest.Mock;
-    login: jest.Mock;
-    verifyEmail: jest.Mock;
-    resendOtp: jest.Mock;
-  };
+  let mockRegisterUseCase: { execute: jest.Mock };
+  let mockLoginUseCase: { execute: jest.Mock };
+  let mockVerifyEmailUseCase: { execute: jest.Mock };
+  let mockResendOtpUseCase: { execute: jest.Mock };
 
   beforeEach(async () => {
-    mockAuthService = {
-      register: jest.fn(),
-      login: jest.fn(),
-      verifyEmail: jest.fn(),
-      resendOtp: jest.fn(),
-    };
+    mockRegisterUseCase = { execute: jest.fn() };
+    mockLoginUseCase = { execute: jest.fn() };
+    mockVerifyEmailUseCase = { execute: jest.fn() };
+    mockResendOtpUseCase = { execute: jest.fn() };
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AuthController],
-      providers: [{ provide: AuthService, useValue: mockAuthService }],
+      providers: [
+        { provide: RegisterUseCase, useValue: mockRegisterUseCase },
+        { provide: LoginUseCase, useValue: mockLoginUseCase },
+        { provide: VerifyEmailUseCase, useValue: mockVerifyEmailUseCase },
+        { provide: ResendOtpUseCase, useValue: mockResendOtpUseCase },
+      ],
     }).compile();
 
     authController = module.get<AuthController>(AuthController);
   });
 
   describe('POST /auth/register', () => {
-    it('should call authService.register and return response', async () => {
+    it('should call registerUseCase.execute and return response', async () => {
       const response = {
         userId: 'user-uuid',
         email: 'test@example.com',
@@ -38,7 +44,7 @@ describe('AuthController', () => {
         isEmailVerified: false,
         message: 'Registration successful',
       };
-      mockAuthService.register.mockResolvedValue(response);
+      mockRegisterUseCase.execute.mockResolvedValue(response);
 
       const result = await authController.register({
         name: 'Test User',
@@ -48,7 +54,7 @@ describe('AuthController', () => {
         confirmPassword: 'Password123!',
       });
 
-      expect(mockAuthService.register).toHaveBeenCalledWith({
+      expect(mockRegisterUseCase.execute).toHaveBeenCalledWith({
         name: 'Test User',
         email: 'test@example.com',
         phone: '081234567890',
@@ -60,7 +66,7 @@ describe('AuthController', () => {
   });
 
   describe('POST /auth/login', () => {
-    it('should call authService.login and return access token with user profile', async () => {
+    it('should call loginUseCase.execute and return access token with user profile', async () => {
       const response = {
         accessToken: 'jwt-access-token',
         expiresIn: 900,
@@ -72,14 +78,14 @@ describe('AuthController', () => {
           role: 'USER' as const,
         },
       };
-      mockAuthService.login.mockResolvedValue(response);
+      mockLoginUseCase.execute.mockResolvedValue(response);
 
       const result = await authController.login({
         email: 'test@example.com',
         password: 'Password123!',
       });
 
-      expect(mockAuthService.login).toHaveBeenCalledWith({
+      expect(mockLoginUseCase.execute).toHaveBeenCalledWith({
         email: 'test@example.com',
         password: 'Password123!',
       });
@@ -88,21 +94,21 @@ describe('AuthController', () => {
   });
 
   describe('POST /auth/verify-email', () => {
-    it('should call authService.verifyEmail and return response', async () => {
+    it('should call verifyEmailUseCase.execute and return response', async () => {
       const response = {
         userId: 'user-uuid',
         email: 'test@example.com',
         isEmailVerified: true,
         message: 'Email verified successfully',
       };
-      mockAuthService.verifyEmail.mockResolvedValue(response);
+      mockVerifyEmailUseCase.execute.mockResolvedValue(response);
 
       const result = await authController.verifyEmail({
         email: 'test@example.com',
         otp: '123456',
       });
 
-      expect(mockAuthService.verifyEmail).toHaveBeenCalledWith({
+      expect(mockVerifyEmailUseCase.execute).toHaveBeenCalledWith({
         email: 'test@example.com',
         otp: '123456',
       });
@@ -111,20 +117,20 @@ describe('AuthController', () => {
   });
 
   describe('POST /auth/resend-otp', () => {
-    it('should call authService.resendOtp and return response', async () => {
+    it('should call resendOtpUseCase.execute and return response', async () => {
       const response = {
         userId: 'user-uuid',
         email: 'test@example.com',
         message: 'A new verification code has been sent to your email.',
       };
-      mockAuthService.resendOtp.mockResolvedValue(response);
+      mockResendOtpUseCase.execute.mockResolvedValue(response);
 
       const result = await authController.resendOtp({
         email: 'test@example.com',
         type: OtpType.EMAIL_VERIFICATION,
       });
 
-      expect(mockAuthService.resendOtp).toHaveBeenCalledWith({
+      expect(mockResendOtpUseCase.execute).toHaveBeenCalledWith({
         email: 'test@example.com',
         type: OtpType.EMAIL_VERIFICATION,
       });
@@ -132,4 +138,5 @@ describe('AuthController', () => {
     });
   });
 });
+
 

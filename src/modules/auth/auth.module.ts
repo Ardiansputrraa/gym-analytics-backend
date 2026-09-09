@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule, type JwtModuleOptions } from '@nestjs/jwt';
 import { AuthController } from './auth.controller';
-import { AuthService } from '../../application/auth/auth.service';
+import { AUTH_USE_CASES, OtpService } from '../../application/auth';
 import { USER_REPOSITORY } from '../../domain/repositories/user.repository.interface';
 import { OTP_TOKEN_REPOSITORY } from '../../domain/repositories/otp-token.repository.interface';
 import { PrismaUserRepository } from '../../infrastructure/database/repositories/prisma-user.repository';
@@ -30,7 +30,8 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
   ],
   controllers: [AuthController],
   providers: [
-    AuthService,
+    ...AUTH_USE_CASES,
+    OtpService,
     JwtAuthGuard,
     {
       provide: USER_REPOSITORY,
@@ -41,7 +42,8 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
       useClass: PrismaOtpTokenRepository,
     },
   ],
-  exports: [AuthService, JwtModule, JwtAuthGuard],
+  exports: [...AUTH_USE_CASES, OtpService, JwtModule, JwtAuthGuard],
 })
 export class AuthModule {}
+
 
