@@ -32,6 +32,8 @@ export class GetDailyCalorieTargetUseCase {
     );
 
     if (existing) {
+      const profile = await this.profileRepository.findByUserId(userId);
+      const waterTargetMl = profile ? Math.round((profile.weightKg * 35) / 50) * 50 : 2500;
       return {
         id: existing.id,
         userId: existing.userId,
@@ -46,6 +48,7 @@ export class GetDailyCalorieTargetUseCase {
         proteinGrams: existing.proteinGrams,
         carbsGrams: existing.carbsGrams,
         fatGrams: existing.fatGrams,
+        waterTargetMl,
       };
     }
 
@@ -109,6 +112,7 @@ export class GetDailyCalorieTargetUseCase {
       proteinGrams: saved.proteinGrams,
       carbsGrams: saved.carbsGrams,
       fatGrams: saved.fatGrams,
+      waterTargetMl: result.waterTargetMl,
     };
   }
 }

@@ -14,6 +14,13 @@ export interface UpsertUserProfileData {
   fitnessGoal: FitnessGoal;
   dietPace?: DietPace;
   checkInIntervalDays?: number;
+  skeletalMuscleKg?: number | null;
+  bodyFatPct?: number | null;
+  bodyFatKg?: number | null;
+  fatFreeMassKg?: number | null;
+  waterContentKg?: number | null;
+  proteinKg?: number | null;
+  mineralKg?: number | null;
 }
 
 export const USER_PROFILE_REPOSITORY = Symbol('IUserProfileRepository');

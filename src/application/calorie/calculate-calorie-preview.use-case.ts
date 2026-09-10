@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { calculateBmr } from '../../domain/calculators/bmr.calculator';
 import { calculateTdee } from '../../domain/calculators/tdee.calculator';
 import { calculateCalorieTarget } from '../../domain/calculators/calorie-target.calculator';
+import { ActivityLevel } from '../../domain/enums/activity-level.enum';
 import { DietPace } from '../../domain/enums/diet-pace.enum';
 import type {
   CalculateCaloriePreviewDto,
@@ -15,6 +16,7 @@ export class CalculateCaloriePreviewUseCase {
     userId = 'preview-user-id',
   ): DailyCalorieTargetResponseDto {
     const dietPace = dto.dietPace ?? DietPace.STANDARD;
+    const activityLevel = dto.activityLevel ?? ActivityLevel.SEDENTARY;
 
     const bmr = calculateBmr({
       weightKg: dto.weightKg,
@@ -25,7 +27,7 @@ export class CalculateCaloriePreviewUseCase {
 
     const { tdee, activityFactor } = calculateTdee({
       bmr,
-      activityLevel: dto.activityLevel,
+      activityLevel,
     });
 
     const result = calculateCalorieTarget({
@@ -48,6 +50,7 @@ export class CalculateCaloriePreviewUseCase {
       proteinGrams: result.proteinGrams,
       carbsGrams: result.carbsGrams,
       fatGrams: result.fatGrams,
+      waterTargetMl: result.waterTargetMl,
     };
   }
 }

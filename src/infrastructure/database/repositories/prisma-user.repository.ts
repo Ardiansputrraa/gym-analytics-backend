@@ -66,6 +66,20 @@ export class PrismaUserRepository implements IUserRepository {
     return this.toEntity(user);
   }
 
+  async update(
+    id: string,
+    data: Partial<{ name: string; phone: string | null }>,
+  ): Promise<UserEntity> {
+    const user = await this.prisma.user.update({
+      where: { id },
+      data: {
+        ...(data.name !== undefined ? { name: data.name } : {}),
+        ...(data.phone !== undefined ? { phone: data.phone } : {}),
+      },
+    });
+    return this.toEntity(user);
+  }
+
   private toEntity(record: PrismaUser): UserEntity {
     return new UserEntity({
       id: record.id,

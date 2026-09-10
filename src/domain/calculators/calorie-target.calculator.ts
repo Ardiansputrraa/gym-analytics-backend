@@ -17,6 +17,7 @@ export interface CalorieTargetResult {
   proteinGrams: number;
   carbsGrams: number;
   fatGrams: number;
+  waterTargetMl: number;
 }
 
 export const GOAL_ADJUSTMENTS: Record<FitnessGoal, Record<DietPace, number>> = {
@@ -82,6 +83,9 @@ export function calculateCalorieTarget(
   const remainingCalories = targetCalories - (proteinCalories + fatGrams * 9);
   const carbsGrams = Math.max(0, Math.round(remainingCalories / 4));
 
+  // 4. Hydration: 35 ml per kg body weight rounded to nearest 50ml step
+  const waterTargetMl = Math.round((weightKg * 35) / 50) * 50;
+
   return {
     tdee,
     fitnessGoal,
@@ -91,5 +95,6 @@ export function calculateCalorieTarget(
     proteinGrams,
     carbsGrams,
     fatGrams,
+    waterTargetMl,
   };
 }

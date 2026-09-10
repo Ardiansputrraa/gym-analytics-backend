@@ -34,7 +34,7 @@ export class ProfileController {
     private readonly getProfileUseCase: GetProfileUseCase,
   ) {}
 
-  @Get('me')
+  @Get(['me', ''])
   @ApiOperation({
     summary: 'Get current user profile & 30-day check-in status',
     description:
@@ -59,7 +59,7 @@ export class ProfileController {
     return this.getProfileUseCase.execute(user.sub);
   }
 
-  @Put('me')
+  @Put(['me', ''])
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary:

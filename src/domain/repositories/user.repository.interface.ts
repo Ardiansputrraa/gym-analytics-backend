@@ -17,4 +17,5 @@ export interface IUserRepository {
   findByEmail(email: string): Promise<UserEntity | null>;
   markEmailVerified(id: string, verifiedAt: Date): Promise<UserEntity>;
   updatePassword(id: string, passwordHash: string): Promise<UserEntity>;
+  update(id: string, data: Partial<{ name: string; phone: string | null }>): Promise<UserEntity>;
 }
