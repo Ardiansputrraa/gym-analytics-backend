@@ -5,6 +5,7 @@ import { MailModule } from './infrastructure/mail/mail.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ProfileModule } from './modules/profile/profile.module';
 import { CalorieModule } from './modules/calorie/calorie.module';
+import { ExercisesModule } from './modules/exercises/exercises.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { CalorieModule } from './modules/calorie/calorie.module';
     AuthModule,
     ProfileModule,
     CalorieModule,
+    ExercisesModule,
   ],
 })
 export class AppModule {}
