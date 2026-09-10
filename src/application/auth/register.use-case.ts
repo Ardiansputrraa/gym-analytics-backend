@@ -25,7 +25,7 @@ export class RegisterUseCase {
 
     if (existingUser && existingUser.emailVerifiedAt) {
       throw new ConflictException({
-        message: 'An account with this email already exists',
+        message: 'Akun dengan email ini sudah terdaftar.',
         code: 'EMAIL_ALREADY_EXISTS',
         errors: [],
       });
@@ -63,7 +63,7 @@ export class RegisterUseCase {
       phone: dto.phone ?? null,
       isEmailVerified: false,
       message:
-        'Registration successful. Please verify your email using the 6-digit code sent to your inbox.',
+        'Pendaftaran berhasil. Silakan verifikasi email Anda menggunakan kode OTP 6-digit yang dikirim ke email Anda.',
     };
   }
 }

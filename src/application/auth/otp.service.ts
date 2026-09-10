@@ -64,7 +64,8 @@ export class OtpService {
 
     if (!tokenRecord) {
       throw new BadRequestException({
-        message: 'No active OTP found. Please request a new verification code.',
+        message:
+          'Tidak ditemukan kode OTP aktif. Silakan minta kode verifikasi baru.',
         code: 'OTP_NOT_FOUND',
         errors: [],
       });
@@ -77,7 +78,7 @@ export class OtpService {
     if (tokenRecord.attempts >= maxAttempts) {
       throw new BadRequestException({
         message:
-          'Maximum verification attempts exceeded. Please request a new code.',
+          'Batas maksimum percobaan verifikasi telah habis. Silakan minta kode baru.',
         code: 'OTP_MAX_ATTEMPTS_EXCEEDED',
         errors: [],
       });
@@ -85,7 +86,8 @@ export class OtpService {
 
     if (new Date() > tokenRecord.expiresAt) {
       throw new BadRequestException({
-        message: 'Verification code has expired. Please request a new one.',
+        message:
+          'Kode verifikasi telah kedaluwarsa. Silakan minta kode baru.',
         code: 'OTP_EXPIRED',
         errors: [],
       });
@@ -102,7 +104,7 @@ export class OtpService {
       );
 
       throw new BadRequestException({
-        message: `Invalid verification code. ${remainingAttempts} attempts remaining.`,
+        message: `Kode verifikasi tidak valid. Sisa ${remainingAttempts} kali percobaan.`,
         code: 'OTP_INVALID',
         errors: [],
       });

@@ -4,14 +4,16 @@ import { OtpType } from '../../../domain/enums/otp-type.enum';
 
 export const ResendOtpSchema = z.object({
   email: z
-    .string()
+    .string({ message: 'Email wajib diisi' })
     .trim()
     .toLowerCase()
-    .email({ message: 'Must be a valid email address' })
-    .max(255, { message: 'Email cannot exceed 255 characters' }),
+    .min(1, { message: 'Email wajib diisi' })
+    .email({ message: 'Format email tidak valid' })
+    .max(255, { message: 'Email tidak boleh lebih dari 255 karakter' }),
   type: z
     .nativeEnum(OtpType, {
-      message: 'Invalid OTP type. Allowed: EMAIL_VERIFICATION, PASSWORD_RESET',
+      message:
+        'Tipe OTP tidak valid. Pilihan yang diizinkan: EMAIL_VERIFICATION, PASSWORD_RESET',
     })
     .default(OtpType.EMAIL_VERIFICATION),
 });

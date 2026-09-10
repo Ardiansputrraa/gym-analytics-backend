@@ -54,7 +54,7 @@ export class GetDailyCalorieTargetUseCase {
     if (!profile) {
       throw new NotFoundException({
         message:
-          'No calorie target found. Please complete your user profile first.',
+          'Target kalori belum ditemukan. Silakan lengkapi profil pengguna Anda terlebih dahulu.',
         code: 'PROFILE_REQUIRED',
         errors: [],
       });

@@ -14,7 +14,7 @@ export const GoogleAuthSchema = z.object({
     .string()
     .trim()
     .toLowerCase()
-    .email({ message: 'Must be a valid email address' })
+    .email({ message: 'Format email tidak valid' })
     .optional()
     .describe('Verified Google account email address'),
   name: z
@@ -24,7 +24,7 @@ export const GoogleAuthSchema = z.object({
     .describe('Full name from Google profile'),
   avatarUrl: z
     .string()
-    .url()
+    .url({ message: 'Format URL foto profil tidak valid' })
     .optional()
     .describe('Google account avatar picture URL'),
   phone: z
@@ -32,7 +32,7 @@ export const GoogleAuthSchema = z.object({
     .trim()
     .regex(/^08\d{8,11}$/, {
       message:
-        'Phone number must be a valid Indonesian mobile number starting with 08 (10-13 digits)',
+        'Nomor telepon harus berupa nomor seluler Indonesia yang valid diawali dengan 08 (10-13 digit)',
     })
     .optional()
     .describe('Optional phone number for contact'),

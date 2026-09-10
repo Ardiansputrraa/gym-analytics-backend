@@ -30,7 +30,7 @@ export class ResendOtpUseCase {
 
     if (!user) {
       throw new NotFoundException({
-        message: 'Account not found',
+        message: 'Akun tidak ditemukan.',
         code: 'USER_NOT_FOUND',
         errors: [],
       });
@@ -40,7 +40,7 @@ export class ResendOtpUseCase {
 
     if (type === OtpType.EMAIL_VERIFICATION && user.emailVerifiedAt) {
       throw new BadRequestException({
-        message: 'Email is already verified',
+        message: 'Email sudah terverifikasi.',
         code: 'EMAIL_ALREADY_VERIFIED',
         errors: [],
       });
@@ -58,7 +58,7 @@ export class ResendOtpUseCase {
     return {
       userId: user.id,
       email: user.email,
-      message: 'A new verification code has been sent to your email.',
+      message: 'Kode verifikasi baru telah dikirimkan ke email Anda.',
     };
   }
 }

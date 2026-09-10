@@ -28,7 +28,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     if (exception instanceof ZodError) {
       response.status(HttpStatus.BAD_REQUEST).json({
         success: false,
-        message: 'Validation failed',
+        message: 'Validasi data gagal.',
         code: 'VALIDATION_ERROR',
         errors: exception.issues.map((issue) => ({
           path: issue.path.join('.'),
@@ -52,7 +52,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
         if (Array.isArray(body.issues)) {
           // ZodValidationException from nestjs-zod
-          message = 'Validation failed';
+          message = 'Validasi data gagal.';
           code = 'VALIDATION_ERROR';
           errors = body.issues;
         } else if (Array.isArray(body.errors)) {
@@ -60,7 +60,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
           code = body.code ?? this.statusToCode(status);
           message = typeof body.message === 'string' ? body.message : message;
         } else if (Array.isArray(body.message)) {
-          message = 'Validation failed';
+          message = 'Validasi data gagal.';
           code = body.code ?? 'VALIDATION_ERROR';
           errors = body.message;
         } else if (typeof body.message === 'string') {
@@ -80,7 +80,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       this.logger.error('Unhandled exception:', exception);
       response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
         success: false,
-        message: 'Internal server error',
+        message: 'Terjadi kesalahan internal pada server.',
         code: 'INTERNAL_ERROR',
         errors: [],
       });

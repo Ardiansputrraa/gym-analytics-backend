@@ -6,12 +6,28 @@ import { FitnessGoal } from '../../../domain/enums/fitness-goal.enum';
 import { DietPace } from '../../../domain/enums/diet-pace.enum';
 
 export const CalculateCaloriePreviewSchema = z.object({
-  age: z.number().int().min(10).max(120),
-  gender: z.nativeEnum(Gender),
-  heightCm: z.number().min(50).max(300),
-  weightKg: z.number().min(20).max(500),
-  activityLevel: z.nativeEnum(ActivityLevel),
-  fitnessGoal: z.nativeEnum(FitnessGoal),
+  age: z
+    .number({ message: 'Usia wajib diisi' })
+    .int('Usia harus berupa bilangan bulat')
+    .min(10, 'Usia minimal 10 tahun')
+    .max(120, 'Usia maksimal 120 tahun'),
+  gender: z.nativeEnum(Gender, {
+    message: 'Jenis kelamin harus MALE atau FEMALE',
+  }),
+  heightCm: z
+    .number({ message: 'Tinggi badan wajib diisi' })
+    .min(50, 'Tinggi badan minimal 50 cm')
+    .max(300, 'Tinggi badan maksimal 300 cm'),
+  weightKg: z
+    .number({ message: 'Berat badan wajib diisi' })
+    .min(20, 'Berat badan minimal 20 kg')
+    .max(500, 'Berat badan maksimal 500 kg'),
+  activityLevel: z.nativeEnum(ActivityLevel, {
+    message: 'Tingkat aktivitas wajib dipilih',
+  }),
+  fitnessGoal: z.nativeEnum(FitnessGoal, {
+    message: 'Target kebugaran wajib dipilih',
+  }),
   dietPace: z.nativeEnum(DietPace).default(DietPace.STANDARD).optional(),
 });
 

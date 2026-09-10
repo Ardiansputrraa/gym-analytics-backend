@@ -50,7 +50,8 @@ export class GoogleAuthUseCase {
 
     if (!email) {
       throw new BadRequestException({
-        message: 'Valid Google email address or ID token is required for Google SSO.',
+        message:
+          'Email Google yang valid atau token ID diperlukan untuk Google SSO.',
         code: 'GOOGLE_AUTH_FAILED',
         errors: [],
       });
@@ -62,7 +63,7 @@ export class GoogleAuthUseCase {
     if (user) {
       if (!user.isActive) {
         throw new ForbiddenException({
-          message: 'Your account has been deactivated or suspended.',
+          message: 'Akun Anda telah dinonaktifkan atau disuspensi.',
           code: 'ACCOUNT_SUSPENDED',
           errors: [],
         });
@@ -122,6 +123,7 @@ export class GoogleAuthUseCase {
         phone: user.phone ?? null,
         isAdmin: user.isAdmin,
       },
+      message: 'Login Google SSO berhasil! Selamat datang.',
     };
   }
 

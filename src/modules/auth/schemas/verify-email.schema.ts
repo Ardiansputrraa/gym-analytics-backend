@@ -3,16 +3,17 @@ import { createZodDto } from 'nestjs-zod';
 
 export const VerifyEmailSchema = z.object({
   email: z
-    .string()
+    .string({ message: 'Email wajib diisi' })
     .trim()
     .toLowerCase()
-    .email({ message: 'Must be a valid email address' })
-    .max(255, { message: 'Email cannot exceed 255 characters' }),
+    .min(1, { message: 'Email wajib diisi' })
+    .email({ message: 'Format email tidak valid' })
+    .max(255, { message: 'Email tidak boleh lebih dari 255 karakter' }),
   otp: z
-    .string()
+    .string({ message: 'Kode OTP wajib diisi' })
     .trim()
-    .length(6, { message: 'OTP must be exactly 6 digits' })
-    .regex(/^\d{6}$/, { message: 'OTP must consist of 6 numeric digits' }),
+    .length(6, { message: 'Kode OTP harus tepat 6 digit' })
+    .regex(/^\d{6}$/, { message: 'Kode OTP harus berupa 6 digit angka' }),
 });
 
 export const VerifyEmailResponseSchema = z.object({
