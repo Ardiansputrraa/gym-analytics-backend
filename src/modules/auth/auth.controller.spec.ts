@@ -7,6 +7,8 @@ import {
   ResendOtpUseCase,
   LogoutUseCase,
   GoogleAuthUseCase,
+  ForgotPasswordUseCase,
+  ResetPasswordUseCase,
 } from '../../application/auth';
 import { OtpType } from '../../domain/enums/otp-type.enum';
 
@@ -18,6 +20,8 @@ describe('AuthController', () => {
   let mockResendOtpUseCase: { execute: jest.Mock };
   let mockLogoutUseCase: { execute: jest.Mock };
   let mockGoogleAuthUseCase: { execute: jest.Mock };
+  let mockForgotPasswordUseCase: { execute: jest.Mock };
+  let mockResetPasswordUseCase: { execute: jest.Mock };
 
   beforeEach(async () => {
     mockRegisterUseCase = { execute: jest.fn() };
@@ -26,6 +30,8 @@ describe('AuthController', () => {
     mockResendOtpUseCase = { execute: jest.fn() };
     mockLogoutUseCase = { execute: jest.fn() };
     mockGoogleAuthUseCase = { execute: jest.fn() };
+    mockForgotPasswordUseCase = { execute: jest.fn() };
+    mockResetPasswordUseCase = { execute: jest.fn() };
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AuthController],
@@ -36,6 +42,8 @@ describe('AuthController', () => {
         { provide: ResendOtpUseCase, useValue: mockResendOtpUseCase },
         { provide: LogoutUseCase, useValue: mockLogoutUseCase },
         { provide: GoogleAuthUseCase, useValue: mockGoogleAuthUseCase },
+        { provide: ForgotPasswordUseCase, useValue: mockForgotPasswordUseCase },
+        { provide: ResetPasswordUseCase, useValue: mockResetPasswordUseCase },
       ],
     }).compile();
 
@@ -85,6 +93,7 @@ describe('AuthController', () => {
           phone: '081234567890',
           isAdmin: false,
         },
+        message: 'Login berhasil! Selamat datang kembali.',
       };
       mockLoginUseCase.execute.mockResolvedValue(response);
 
@@ -113,6 +122,7 @@ describe('AuthController', () => {
           phone: null,
           isAdmin: false,
         },
+        message: 'Login Google SSO berhasil! Selamat datang.',
       };
       mockGoogleAuthUseCase.execute.mockResolvedValue(response);
 
@@ -183,6 +193,47 @@ describe('AuthController', () => {
       expect(mockResendOtpUseCase.execute).toHaveBeenCalledWith({
         email: 'test@example.com',
         type: OtpType.EMAIL_VERIFICATION,
+      });
+      expect(result).toEqual(response);
+    });
+  });
+
+  describe('POST /auth/forgot-password', () => {
+    it('should call forgotPasswordUseCase.execute and return response', async () => {
+      const response = {
+        message: 'Password reset code has been sent to your email.',
+      };
+      mockForgotPasswordUseCase.execute.mockResolvedValue(response);
+
+      const result = await authController.forgotPassword({
+        email: 'test@example.com',
+      });
+
+      expect(mockForgotPasswordUseCase.execute).toHaveBeenCalledWith({
+        email: 'test@example.com',
+      });
+      expect(result).toEqual(response);
+    });
+  });
+
+  describe('POST /auth/reset-password', () => {
+    it('should call resetPasswordUseCase.execute and return response', async () => {
+      const response = {
+        message:
+          'Password has been reset successfully. You can now login with your new password.',
+      };
+      mockResetPasswordUseCase.execute.mockResolvedValue(response);
+
+      const result = await authController.resetPassword({
+        email: 'test@example.com',
+        otp: '123456',
+        newPassword: 'NewPassword123!',
+      });
+
+      expect(mockResetPasswordUseCase.execute).toHaveBeenCalledWith({
+        email: 'test@example.com',
+        otp: '123456',
+        newPassword: 'NewPassword123!',
       });
       expect(result).toEqual(response);
     });

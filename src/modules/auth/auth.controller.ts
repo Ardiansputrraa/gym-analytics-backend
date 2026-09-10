@@ -7,6 +7,8 @@ import {
   ResendOtpUseCase,
   LogoutUseCase,
   GoogleAuthUseCase,
+  ForgotPasswordUseCase,
+  ResetPasswordUseCase,
 } from '../../application/auth';
 import {
   RegisterDto,
@@ -15,11 +17,15 @@ import {
   LoginDto,
   LogoutDto,
   GoogleAuthDto,
+  ForgotPasswordDto,
+  ResetPasswordDto,
   RegisterResponseDto,
   VerifyEmailResponseDto,
   ResendOtpResponseDto,
   LoginResponseDto,
   LogoutResponseDto,
+  ForgotPasswordResponseDto,
+  ResetPasswordResponseDto,
 } from './schemas';
 
 @ApiTags('Auth')
@@ -32,6 +38,8 @@ export class AuthController {
     private readonly resendOtpUseCase: ResendOtpUseCase,
     private readonly logoutUseCase: LogoutUseCase,
     private readonly googleAuthUseCase: GoogleAuthUseCase,
+    private readonly forgotPasswordUseCase: ForgotPasswordUseCase,
+    private readonly resetPasswordUseCase: ResetPasswordUseCase,
   ) {}
 
   @Post('register')
@@ -176,5 +184,58 @@ export class AuthController {
   })
   async resendOtp(@Body() dto: ResendOtpDto): Promise<ResendOtpResponseDto> {
     return this.resendOtpUseCase.execute(dto);
+  }
+
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Request password reset OTP code',
+    description:
+      'Sends a 6-digit password reset OTP code to the specified registered email address.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Password reset code sent to email.',
+    type: ForgotPasswordResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Validation failed (invalid email format).',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Account not found with provided email.',
+  })
+  async forgotPassword(
+    @Body() dto: ForgotPasswordDto,
+  ): Promise<ForgotPasswordResponseDto> {
+    return this.forgotPasswordUseCase.execute(dto);
+  }
+
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Reset password using OTP code',
+    description:
+      'Verifies the password reset OTP code and updates the user account password with argon2 hash.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Password reset successfully.',
+    type: ResetPasswordResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description:
+      'Invalid OTP code, OTP expired, or password does not meet complexity requirements.',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Account not found.',
+  })
+  async resetPassword(
+    @Body() dto: ResetPasswordDto,
+  ): Promise<ResetPasswordResponseDto> {
+    return this.resetPasswordUseCase.execute(dto);
   }
 }
