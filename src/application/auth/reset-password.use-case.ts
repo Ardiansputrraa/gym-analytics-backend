@@ -23,7 +23,7 @@ export class ResetPasswordUseCase {
     const user = await this.userRepository.findByEmail(dto.email);
     if (!user) {
       throw new NotFoundException({
-        message: 'No account found with this email address.',
+        message: 'Akun dengan alamat email ini tidak ditemukan.',
         code: 'USER_NOT_FOUND',
         errors: [],
       });
@@ -40,7 +40,7 @@ export class ResetPasswordUseCase {
 
     return {
       message:
-        'Password has been reset successfully. You can now login with your new password.',
+        'Kata sandi berhasil diatur ulang. Anda sekarang dapat masuk dengan kata sandi baru.',
     };
   }
 }

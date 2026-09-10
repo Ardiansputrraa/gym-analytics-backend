@@ -5,7 +5,6 @@ import { ResetPasswordUseCase } from './reset-password.use-case';
 import { USER_REPOSITORY } from '../../domain/repositories/user.repository.interface';
 import { OtpService } from './otp.service';
 import { UserEntity } from '../../domain/entities/user.entity';
-import { UserRole } from '../../domain/enums/user-role.enum';
 import { OtpType } from '../../domain/enums/otp-type.enum';
 
 jest.mock('argon2');
@@ -25,7 +24,7 @@ describe('ResetPasswordUseCase', () => {
     email: 'user@example.com',
     passwordHash: '$argon2id$v=19$m=65536,t=3,p=4$oldhash',
     name: 'John Doe',
-    role: UserRole.USER,
+    isAdmin: false,
     isActive: true,
     emailVerifiedAt: new Date(),
     createdAt: new Date(),
@@ -85,7 +84,7 @@ describe('ResetPasswordUseCase', () => {
     );
     expect(result).toEqual({
       message:
-        'Password has been reset successfully. You can now login with your new password.',
+        'Kata sandi berhasil diatur ulang. Anda sekarang dapat masuk dengan kata sandi baru.',
     });
   });
 

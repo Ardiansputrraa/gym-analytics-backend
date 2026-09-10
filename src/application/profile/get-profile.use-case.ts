@@ -18,7 +18,7 @@ export class GetProfileUseCase {
     if (!profile) {
       throw new NotFoundException({
         message:
-          'User profile not found. Please complete your profile to enable personalized calorie targets.',
+          'Profil pengguna tidak ditemukan. Silakan lengkapi profil Anda untuk menghitung target kalori yang sesuai.',
         code: 'PROFILE_NOT_FOUND',
         errors: [],
       });

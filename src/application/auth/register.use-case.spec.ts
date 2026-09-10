@@ -4,7 +4,6 @@ import { RegisterUseCase } from './register.use-case';
 import { USER_REPOSITORY } from '../../domain/repositories/user.repository.interface';
 import { OtpService } from './otp.service';
 import { MailService } from '../../infrastructure/mail/mail.service';
-import { UserRole } from '../../domain/enums/user-role.enum';
 import { OtpType } from '../../domain/enums/otp-type.enum';
 import { UserEntity } from '../../domain/entities/user.entity';
 
@@ -59,7 +58,7 @@ describe('RegisterUseCase', () => {
         name: 'Test User',
         phone: '081234567890',
         passwordHash: 'hashed_password',
-        role: UserRole.USER,
+        isAdmin: false,
         isActive: true,
         emailVerifiedAt: null,
         createdAt: new Date(),
@@ -106,7 +105,7 @@ describe('RegisterUseCase', () => {
         name: 'Existing User',
         phone: null,
         passwordHash: 'hashed_password',
-        role: UserRole.USER,
+        isAdmin: false,
         isActive: true,
         emailVerifiedAt: new Date(), // Already verified
         createdAt: new Date(),
@@ -137,7 +136,7 @@ describe('RegisterUseCase', () => {
         name: 'Old Name',
         phone: null,
         passwordHash: 'old_hashed_password',
-        role: UserRole.USER,
+        isAdmin: false,
         isActive: true,
         emailVerifiedAt: null, // Not verified
         createdAt: new Date(),

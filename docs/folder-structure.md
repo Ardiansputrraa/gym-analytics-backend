@@ -57,7 +57,6 @@ Layer murni TypeScript yang tidak terikat framework NestJS atau database:
   - `user.entity.ts`: Representasi domain entity User.
   - `otp-token.entity.ts`: Representasi domain entity OTP Token.
 - **`enums/`**:
-  - `user-role.enum.ts`: Enum peran user (`USER`, `ADMIN`).
   - `otp-type.enum.ts`: Enum jenis OTP (`EMAIL_VERIFICATION`, `PASSWORD_RESET`).
 - **`repositories/`**:
   - `user.repository.interface.ts`: Kontrak method data access User (`IUserRepository`) & Injection Token (`USER_REPOSITORY`).

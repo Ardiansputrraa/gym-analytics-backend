@@ -38,7 +38,7 @@ export class UpsertProfileUseCase {
     const user = await this.userRepository.findById(userId);
     if (!user) {
       throw new NotFoundException({
-        message: 'User account not found',
+        message: 'Akun pengguna tidak ditemukan.',
         code: 'USER_NOT_FOUND',
         errors: [],
       });

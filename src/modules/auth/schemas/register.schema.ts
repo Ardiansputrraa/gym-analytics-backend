@@ -4,38 +4,39 @@ import { createZodDto } from 'nestjs-zod';
 export const RegisterSchema = z
   .object({
     name: z
-      .string()
+      .string({ message: 'Nama lengkap wajib diisi' })
       .trim()
-      .min(1, { message: 'Name is required' })
-      .max(255, { message: 'Name cannot exceed 255 characters' }),
+      .min(1, { message: 'Nama lengkap wajib diisi' })
+      .max(255, { message: 'Nama lengkap tidak boleh lebih dari 255 karakter' }),
     email: z
-      .string()
+      .string({ message: 'Email wajib diisi' })
       .trim()
       .toLowerCase()
-      .email({ message: 'Must be a valid email address' })
-      .max(255, { message: 'Email cannot exceed 255 characters' }),
+      .min(1, { message: 'Email wajib diisi' })
+      .email({ message: 'Format email tidak valid' })
+      .max(255, { message: 'Email tidak boleh lebih dari 255 karakter' }),
     phone: z
       .string()
       .trim()
       .regex(/^08\d{8,11}$/, {
         message:
-          'Phone number must be a valid Indonesian mobile number starting with 08 (10-13 digits)',
+          'Nomor telepon harus berupa nomor seluler Indonesia yang valid diawali dengan 08 (10-13 digit)',
       })
       .optional(),
     password: z
-      .string()
-      .min(8, { message: 'Password must be at least 8 characters long' })
-      .max(100, { message: 'Password cannot exceed 100 characters' })
+      .string({ message: 'Kata sandi wajib diisi' })
+      .min(8, { message: 'Kata sandi minimal harus 8 karakter' })
+      .max(100, { message: 'Kata sandi tidak boleh lebih dari 100 karakter' })
       .regex(/((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, {
         message:
-          'Password must contain at least 1 uppercase letter, 1 lowercase letter, and 1 number or special character',
+          'Kata sandi harus mengandung minimal 1 huruf besar, 1 huruf kecil, dan 1 angka atau simbol',
       }),
     confirmPassword: z
-      .string()
-      .min(1, { message: 'Confirm password is required' }),
+      .string({ message: 'Konfirmasi kata sandi wajib diisi' })
+      .min(1, { message: 'Konfirmasi kata sandi wajib diisi' }),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: 'Passwords do not match',
+    message: 'Konfirmasi kata sandi tidak cocok',
     path: ['confirmPassword'],
   });
 

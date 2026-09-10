@@ -5,6 +5,8 @@ import {
   LoginUseCase,
   VerifyEmailUseCase,
   ResendOtpUseCase,
+  LogoutUseCase,
+  GoogleAuthUseCase,
   ForgotPasswordUseCase,
   ResetPasswordUseCase,
 } from '../../application/auth';
@@ -16,6 +18,8 @@ describe('AuthController', () => {
   let mockLoginUseCase: { execute: jest.Mock };
   let mockVerifyEmailUseCase: { execute: jest.Mock };
   let mockResendOtpUseCase: { execute: jest.Mock };
+  let mockLogoutUseCase: { execute: jest.Mock };
+  let mockGoogleAuthUseCase: { execute: jest.Mock };
   let mockForgotPasswordUseCase: { execute: jest.Mock };
   let mockResetPasswordUseCase: { execute: jest.Mock };
 
@@ -24,6 +28,8 @@ describe('AuthController', () => {
     mockLoginUseCase = { execute: jest.fn() };
     mockVerifyEmailUseCase = { execute: jest.fn() };
     mockResendOtpUseCase = { execute: jest.fn() };
+    mockLogoutUseCase = { execute: jest.fn() };
+    mockGoogleAuthUseCase = { execute: jest.fn() };
     mockForgotPasswordUseCase = { execute: jest.fn() };
     mockResetPasswordUseCase = { execute: jest.fn() };
 
@@ -34,6 +40,8 @@ describe('AuthController', () => {
         { provide: LoginUseCase, useValue: mockLoginUseCase },
         { provide: VerifyEmailUseCase, useValue: mockVerifyEmailUseCase },
         { provide: ResendOtpUseCase, useValue: mockResendOtpUseCase },
+        { provide: LogoutUseCase, useValue: mockLogoutUseCase },
+        { provide: GoogleAuthUseCase, useValue: mockGoogleAuthUseCase },
         { provide: ForgotPasswordUseCase, useValue: mockForgotPasswordUseCase },
         { provide: ResetPasswordUseCase, useValue: mockResetPasswordUseCase },
       ],
@@ -83,8 +91,9 @@ describe('AuthController', () => {
           email: 'test@example.com',
           name: 'Test User',
           phone: '081234567890',
-          role: 'USER' as const,
+          isAdmin: false,
         },
+        message: 'Login berhasil! Selamat datang kembali.',
       };
       mockLoginUseCase.execute.mockResolvedValue(response);
 
@@ -97,6 +106,49 @@ describe('AuthController', () => {
         email: 'test@example.com',
         password: 'Password123!',
       });
+      expect(result).toEqual(response);
+    });
+  });
+
+  describe('POST /auth/google', () => {
+    it('should call googleAuthUseCase.execute and return access token with user profile', async () => {
+      const response = {
+        accessToken: 'google-jwt-access-token',
+        expiresIn: 900,
+        user: {
+          id: 'google-user-uuid',
+          email: 'athlete@gmail.com',
+          name: 'Athlete Google',
+          phone: null,
+          isAdmin: false,
+        },
+        message: 'Login Google SSO berhasil! Selamat datang.',
+      };
+      mockGoogleAuthUseCase.execute.mockResolvedValue(response);
+
+      const result = await authController.googleAuth({
+        email: 'athlete@gmail.com',
+        name: 'Athlete Google',
+      });
+
+      expect(mockGoogleAuthUseCase.execute).toHaveBeenCalledWith({
+        email: 'athlete@gmail.com',
+        name: 'Athlete Google',
+      });
+      expect(result).toEqual(response);
+    });
+  });
+
+  describe('POST /auth/logout', () => {
+    it('should call logoutUseCase.execute and return success response', async () => {
+      const response = {
+        success: true,
+        message: 'Logged out successfully',
+      };
+      mockLogoutUseCase.execute.mockResolvedValue(response);
+
+      const result = await authController.logout({});
+      expect(mockLogoutUseCase.execute).toHaveBeenCalledWith({});
       expect(result).toEqual(response);
     });
   });

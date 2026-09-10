@@ -11,7 +11,7 @@ import { Request } from 'express';
 export interface JwtPayload {
   sub: string;
   email: string;
-  role: string;
+  isAdmin: boolean;
 }
 
 declare module 'express' {
@@ -33,7 +33,7 @@ export class JwtAuthGuard implements CanActivate {
 
     if (!token) {
       throw new UnauthorizedException({
-        message: 'Authentication token is required',
+        message: 'Token otentikasi diperlukan.',
         code: 'UNAUTHORIZED',
         errors: [],
       });
@@ -49,7 +49,7 @@ export class JwtAuthGuard implements CanActivate {
       return true;
     } catch {
       throw new UnauthorizedException({
-        message: 'Invalid or expired authentication token',
+        message: 'Token otentikasi tidak valid atau telah kedaluwarsa.',
         code: 'TOKEN_INVALID_OR_EXPIRED',
         errors: [],
       });

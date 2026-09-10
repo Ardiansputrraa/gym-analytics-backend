@@ -5,7 +5,6 @@ import { USER_REPOSITORY } from '../../domain/repositories/user.repository.inter
 import { OtpService } from './otp.service';
 import { MailService } from '../../infrastructure/mail/mail.service';
 import { UserEntity } from '../../domain/entities/user.entity';
-import { UserRole } from '../../domain/enums/user-role.enum';
 import { OtpType } from '../../domain/enums/otp-type.enum';
 
 describe('ForgotPasswordUseCase', () => {
@@ -25,7 +24,7 @@ describe('ForgotPasswordUseCase', () => {
     email: 'user@example.com',
     passwordHash: '$argon2id$v=19$m=65536,t=3,p=4$somehash',
     name: 'John Doe',
-    role: UserRole.USER,
+    isAdmin: false,
     isActive: true,
     emailVerifiedAt: new Date(),
     createdAt: new Date(),
@@ -78,7 +77,7 @@ describe('ForgotPasswordUseCase', () => {
       5,
     );
     expect(result).toEqual({
-      message: 'Password reset code has been sent to your email.',
+      message: 'Kode OTP reset kata sandi telah dikirim ke email Anda.',
     });
   });
 

@@ -31,7 +31,7 @@ export class VerifyEmailUseCase {
 
     if (!user) {
       throw new NotFoundException({
-        message: 'Account not found',
+        message: 'Akun tidak ditemukan.',
         code: 'USER_NOT_FOUND',
         errors: [],
       });
@@ -39,7 +39,7 @@ export class VerifyEmailUseCase {
 
     if (user.emailVerifiedAt) {
       throw new BadRequestException({
-        message: 'Email is already verified',
+        message: 'Email sudah terverifikasi.',
         code: 'EMAIL_ALREADY_VERIFIED',
         errors: [],
       });
@@ -60,7 +60,7 @@ export class VerifyEmailUseCase {
       userId: user.id,
       email: user.email,
       isEmailVerified: true,
-      message: 'Email verified successfully. You can now log in.',
+      message: 'Email berhasil diverifikasi. Anda sekarang dapat masuk.',
     };
   }
 }

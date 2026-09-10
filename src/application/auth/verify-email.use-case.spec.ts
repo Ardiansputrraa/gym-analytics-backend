@@ -3,7 +3,6 @@ import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { VerifyEmailUseCase } from './verify-email.use-case';
 import { USER_REPOSITORY } from '../../domain/repositories/user.repository.interface';
 import { OtpService } from './otp.service';
-import { UserRole } from '../../domain/enums/user-role.enum';
 import { OtpType } from '../../domain/enums/otp-type.enum';
 import { UserEntity } from '../../domain/entities/user.entity';
 
@@ -46,7 +45,7 @@ describe('VerifyEmailUseCase', () => {
         name: 'Test User',
         phone: null,
         passwordHash: 'hashed_password',
-        role: UserRole.USER,
+        isAdmin: false,
         isActive: true,
         emailVerifiedAt: null,
         createdAt: new Date(),
@@ -62,7 +61,7 @@ describe('VerifyEmailUseCase', () => {
         name: 'Test User',
         phone: null,
         passwordHash: 'hashed_password',
-        role: UserRole.USER,
+        isAdmin: false,
         isActive: true,
         emailVerifiedAt: new Date(),
         createdAt: new Date(),
@@ -110,7 +109,7 @@ describe('VerifyEmailUseCase', () => {
         name: 'Test User',
         phone: null,
         passwordHash: 'hashed_password',
-        role: UserRole.USER,
+        isAdmin: false,
         isActive: true,
         emailVerifiedAt: new Date(),
         createdAt: new Date(),

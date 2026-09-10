@@ -7,26 +7,26 @@ import { DietPace } from '../../../domain/enums/diet-pace.enum';
 
 export const UpsertProfileSchema = z.object({
   age: z
-    .number({ message: 'Age is required' })
-    .int('Age must be an integer')
-    .min(10, 'Age must be at least 10 years')
-    .max(120, 'Age must not exceed 120 years'),
+    .number({ message: 'Usia wajib diisi' })
+    .int('Usia harus berupa bilangan bulat')
+    .min(10, 'Usia minimal 10 tahun')
+    .max(120, 'Usia maksimal 120 tahun'),
   gender: z.nativeEnum(Gender, {
-    message: 'Gender must be MALE or FEMALE',
+    message: 'Jenis kelamin harus MALE atau FEMALE',
   }),
   heightCm: z
-    .number({ message: 'Height is required' })
-    .min(50, 'Height must be at least 50 cm')
-    .max(300, 'Height must not exceed 300 cm'),
+    .number({ message: 'Tinggi badan wajib diisi' })
+    .min(50, 'Tinggi badan minimal 50 cm')
+    .max(300, 'Tinggi badan maksimal 300 cm'),
   weightKg: z
-    .number({ message: 'Weight is required' })
-    .min(20, 'Weight must be at least 20 kg')
-    .max(500, 'Weight must not exceed 500 kg'),
+    .number({ message: 'Berat badan wajib diisi' })
+    .min(20, 'Berat badan minimal 20 kg')
+    .max(500, 'Berat badan maksimal 500 kg'),
   activityLevel: z.nativeEnum(ActivityLevel, {
-    message: 'Activity level is required',
+    message: 'Tingkat aktivitas wajib dipilih',
   }),
   fitnessGoal: z.nativeEnum(FitnessGoal, {
-    message: 'Fitness goal is required',
+    message: 'Target kebugaran wajib dipilih',
   }),
   dietPace: z.nativeEnum(DietPace).default(DietPace.STANDARD).optional(),
   checkInIntervalDays: z.number().int().min(1).max(365).default(30).optional(),

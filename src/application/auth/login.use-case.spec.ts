@@ -5,7 +5,6 @@ import { UnauthorizedException, ForbiddenException } from '@nestjs/common';
 import * as argon2 from 'argon2';
 import { LoginUseCase } from './login.use-case';
 import { USER_REPOSITORY } from '../../domain/repositories/user.repository.interface';
-import { UserRole } from '../../domain/enums/user-role.enum';
 import { UserEntity } from '../../domain/entities/user.entity';
 
 describe('LoginUseCase', () => {
@@ -59,7 +58,7 @@ describe('LoginUseCase', () => {
         name: 'Test User',
         phone: '081234567890',
         passwordHash,
-        role: UserRole.USER,
+        isAdmin: false,
         isActive: true,
         emailVerifiedAt: new Date(),
         createdAt: new Date(),
@@ -79,7 +78,7 @@ describe('LoginUseCase', () => {
     expect(mockJwtService.signAsync).toHaveBeenCalledWith({
       sub: 'user-uuid-1',
       email: 'test@example.com',
-      role: UserRole.USER,
+      isAdmin: false,
     });
     expect(result.accessToken).toBe('mocked-jwt-token');
     expect(result.expiresIn).toBe(900);
@@ -88,7 +87,7 @@ describe('LoginUseCase', () => {
       email: 'test@example.com',
       name: 'Test User',
       phone: '081234567890',
-      role: UserRole.USER,
+      isAdmin: false,
     });
   });
 
@@ -115,7 +114,7 @@ describe('LoginUseCase', () => {
         name: 'Test User',
         phone: null,
         passwordHash,
-        role: UserRole.USER,
+        isAdmin: false,
         isActive: true,
         emailVerifiedAt: new Date(),
         createdAt: new Date(),
@@ -145,7 +144,7 @@ describe('LoginUseCase', () => {
         name: 'Test User',
         phone: null,
         passwordHash,
-        role: UserRole.USER,
+        isAdmin: false,
         isActive: true,
         emailVerifiedAt: null, // Unverified
         createdAt: new Date(),
@@ -175,7 +174,7 @@ describe('LoginUseCase', () => {
         name: 'Test User',
         phone: null,
         passwordHash,
-        role: UserRole.USER,
+        isAdmin: false,
         isActive: false, // Suspended
         emailVerifiedAt: new Date(),
         createdAt: new Date(),

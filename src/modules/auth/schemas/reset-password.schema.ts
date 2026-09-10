@@ -3,21 +3,23 @@ import { createZodDto } from 'nestjs-zod';
 
 export const ResetPasswordSchema = z.object({
   email: z
-    .string()
-    .email('Please provide a valid email address')
+    .string({ message: 'Email wajib diisi' })
+    .trim()
     .toLowerCase()
-    .trim(),
+    .min(1, { message: 'Email wajib diisi' })
+    .email({ message: 'Format email tidak valid' }),
   otp: z
-    .string()
-    .length(6, 'OTP must be exactly 6 digits')
-    .regex(/^\d{6}$/, 'OTP must contain only digits'),
+    .string({ message: 'Kode OTP wajib diisi' })
+    .trim()
+    .length(6, { message: 'Kode OTP harus tepat 6 digit' })
+    .regex(/^\d{6}$/, { message: 'Kode OTP harus berupa 6 digit angka' }),
   newPassword: z
-    .string()
-    .min(8, 'Password must be at least 8 characters long')
-    .max(128, 'Password must not exceed 128 characters')
+    .string({ message: 'Kata sandi baru wajib diisi' })
+    .min(8, { message: 'Kata sandi minimal harus 8 karakter' })
+    .max(128, { message: 'Kata sandi tidak boleh lebih dari 128 karakter' })
     .regex(
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-      'Password must contain at least one uppercase letter, one lowercase letter, and one number',
+      { message: 'Kata sandi harus mengandung minimal 1 huruf besar, 1 huruf kecil, dan 1 angka' },
     ),
 });
 

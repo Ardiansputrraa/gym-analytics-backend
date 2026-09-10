@@ -5,7 +5,6 @@ import type {
   IUserRepository,
 } from '../../../domain/repositories/user.repository.interface';
 import { UserEntity } from '../../../domain/entities/user.entity';
-import { UserRole } from '../../../domain/enums/user-role.enum';
 import { User as PrismaUser } from '@prisma/client';
 
 @Injectable()
@@ -19,7 +18,8 @@ export class PrismaUserRepository implements IUserRepository {
         passwordHash: data.passwordHash,
         name: data.name,
         phone: data.phone ?? null,
-        role: data.role ?? UserRole.USER,
+        isAdmin: data.isAdmin ?? false,
+        emailVerifiedAt: data.emailVerifiedAt ?? null,
       },
     });
     return this.toEntity(user);
@@ -27,7 +27,7 @@ export class PrismaUserRepository implements IUserRepository {
 
   async findById(id: string): Promise<UserEntity | null> {
     const user = await this.prisma.user.findFirst({
-      where: { id, deletedAt: null },
+      where: { id, isDeleted: false, deletedAt: null },
     });
     return user ? this.toEntity(user) : null;
   }
@@ -39,6 +39,7 @@ export class PrismaUserRepository implements IUserRepository {
           equals: email,
           mode: 'insensitive',
         },
+        isDeleted: false,
         deletedAt: null,
       },
     });
@@ -72,8 +73,9 @@ export class PrismaUserRepository implements IUserRepository {
       passwordHash: record.passwordHash,
       name: record.name,
       phone: record.phone,
-      role: record.role as UserRole,
+      isAdmin: record.isAdmin,
       isActive: record.isActive,
+      isDeleted: record.isDeleted,
       emailVerifiedAt: record.emailVerifiedAt,
       createdAt: record.createdAt,
       updatedAt: record.updatedAt,

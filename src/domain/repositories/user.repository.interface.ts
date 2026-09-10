@@ -1,12 +1,12 @@
 import { UserEntity } from '../entities/user.entity';
-import { UserRole } from '../enums/user-role.enum';
 
 export interface CreateUserData {
   email: string;
   passwordHash: string;
   name: string;
   phone?: string | null;
-  role?: UserRole;
+  isAdmin?: boolean;
+  emailVerifiedAt?: Date | null;
 }
 
 export const USER_REPOSITORY = Symbol('IUserRepository');

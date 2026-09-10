@@ -3,12 +3,15 @@ import { createZodDto } from 'nestjs-zod';
 
 export const LoginSchema = z.object({
   email: z
-    .string()
+    .string({ message: 'Email wajib diisi' })
     .trim()
     .toLowerCase()
-    .email({ message: 'Must be a valid email address' })
-    .max(255, { message: 'Email cannot exceed 255 characters' }),
-  password: z.string().min(1, { message: 'Password is required' }),
+    .min(1, { message: 'Email wajib diisi' })
+    .email({ message: 'Format email tidak valid' })
+    .max(255, { message: 'Email tidak boleh lebih dari 255 karakter' }),
+  password: z
+    .string({ message: 'Kata sandi wajib diisi' })
+    .min(1, { message: 'Kata sandi wajib diisi' }),
 });
 
 export const LoginUserResponseSchema = z.object({
@@ -16,13 +19,14 @@ export const LoginUserResponseSchema = z.object({
   email: z.string().email(),
   name: z.string(),
   phone: z.string().nullable().optional(),
-  role: z.enum(['USER', 'ADMIN']),
+  isAdmin: z.boolean(),
 });
 
 export const LoginResponseSchema = z.object({
   accessToken: z.string(),
   expiresIn: z.number(),
   user: LoginUserResponseSchema,
+  message: z.string().default('Login berhasil.'),
 });
 
 export class LoginDto extends createZodDto(LoginSchema) {}

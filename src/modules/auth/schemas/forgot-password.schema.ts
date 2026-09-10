@@ -3,10 +3,11 @@ import { createZodDto } from 'nestjs-zod';
 
 export const ForgotPasswordSchema = z.object({
   email: z
-    .string()
-    .email('Please provide a valid email address')
+    .string({ message: 'Email wajib diisi' })
+    .trim()
     .toLowerCase()
-    .trim(),
+    .min(1, { message: 'Email wajib diisi' })
+    .email({ message: 'Format email tidak valid' }),
 });
 
 export class ForgotPasswordDto extends createZodDto(ForgotPasswordSchema) {}

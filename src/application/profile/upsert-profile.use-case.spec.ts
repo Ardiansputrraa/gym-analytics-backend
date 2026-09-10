@@ -6,7 +6,6 @@ import { USER_PROFILE_REPOSITORY } from '../../domain/repositories/user-profile.
 import { DAILY_CALORIE_TARGET_REPOSITORY } from '../../domain/repositories/daily-calorie-target.repository.interface';
 import { UserEntity } from '../../domain/entities/user.entity';
 import { UserProfileEntity } from '../../domain/entities/user-profile.entity';
-import { UserRole } from '../../domain/enums/user-role.enum';
 import { Gender } from '../../domain/enums/gender.enum';
 import { ActivityLevel } from '../../domain/enums/activity-level.enum';
 import { FitnessGoal } from '../../domain/enums/fitness-goal.enum';
@@ -23,7 +22,7 @@ describe('UpsertProfileUseCase', () => {
     email: 'user@example.com',
     passwordHash: 'hash',
     name: 'John Doe',
-    role: UserRole.USER,
+    isAdmin: false,
     isActive: true,
     emailVerifiedAt: new Date(),
     createdAt: new Date(),

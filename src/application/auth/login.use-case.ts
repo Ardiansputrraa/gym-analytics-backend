@@ -30,7 +30,7 @@ export class LoginUseCase {
 
     if (!user) {
       throw new UnauthorizedException({
-        message: 'Invalid email or password',
+        message: 'Email atau kata sandi salah.',
         code: 'INVALID_CREDENTIALS',
         errors: [],
       });
@@ -43,7 +43,7 @@ export class LoginUseCase {
 
     if (!isPasswordValid) {
       throw new UnauthorizedException({
-        message: 'Invalid email or password',
+        message: 'Email atau kata sandi salah.',
         code: 'INVALID_CREDENTIALS',
         errors: [],
       });
@@ -52,7 +52,7 @@ export class LoginUseCase {
     if (!user.emailVerifiedAt) {
       throw new ForbiddenException({
         message:
-          'Email address has not been verified yet. Please verify your email before logging in.',
+          'Alamat email belum diverifikasi. Silakan verifikasi email Anda terlebih dahulu.',
         code: 'EMAIL_NOT_VERIFIED',
         errors: [],
       });
@@ -60,7 +60,7 @@ export class LoginUseCase {
 
     if (!user.isActive) {
       throw new ForbiddenException({
-        message: 'Your account has been deactivated or suspended.',
+        message: 'Akun Anda telah dinonaktifkan atau disuspensi.',
         code: 'ACCOUNT_SUSPENDED',
         errors: [],
       });
@@ -69,7 +69,7 @@ export class LoginUseCase {
     const payload = {
       sub: user.id,
       email: user.email,
-      role: user.role,
+      isAdmin: user.isAdmin,
     };
 
     const accessToken = await this.jwtService.signAsync(payload);
@@ -88,8 +88,9 @@ export class LoginUseCase {
         email: user.email,
         name: user.name,
         phone: user.phone ?? null,
-        role: user.role,
+        isAdmin: user.isAdmin,
       },
+      message: 'Login berhasil! Selamat datang kembali.',
     };
   }
 
