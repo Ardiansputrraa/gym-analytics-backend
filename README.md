@@ -1,7 +1,7 @@
-# Gym Analytics — Backend
+# Gym Analytics — Backend Service
 
-> **NestJS + TypeScript + Prisma + PostgreSQL**
-> Backend API for the **Gym Analytics & Body Progress Platform** MVP.
+> **NestJS 11 + TypeScript (Strict) + Prisma 7 + PostgreSQL (Multi-Schema)**
+> Production-grade Backend API for the **Gym Analytics & Body Progress Platform** MVP following **Clean Architecture Lite (DDD-Lite)**.
 
 ---
 
@@ -9,369 +9,197 @@
 
 - [Overview](#overview)
 - [Tech Stack](#tech-stack)
-- [Architecture](#architecture)
-- [Modules](#modules)
+- [Architecture & Layer Boundaries](#architecture--layer-boundaries)
 - [Database Schemas](#database-schemas)
 - [Prerequisites](#prerequisites)
 - [Environment Variables](#environment-variables)
 - [Getting Started](#getting-started)
-- [Running the Server](#running-the-server)
-- [API Base URL](#api-base-url)
-- [API Endpoints](#api-endpoints)
-- [Scripts](#scripts)
-- [Project Structure](#project-structure)
-- [Business Rules Reference](#business-rules-reference)
+- [API Endpoints & Swagger](#api-endpoints--swagger)
+- [Testing & Quality Assurance](#testing--quality-assurance)
+- [Production Docker Deployment](#production-docker-deployment)
 
 ---
 
 ## Overview
 
-This is the backend service for the **Gym Analytics & Body Progress Platform**, a web application that helps individual gym users track and analyze:
+The backend service powers the Gym Analytics platform with deterministic, mathematical calculation engines (BMR, TDEE, Calorie Targets, Workout Volume, 1RM, PR detection, and Rule-based Insights).
 
-- Workout sessions, exercises, sets, weight, and reps
-- Active time, rest time, transition time, and session duration
-- Workout volume, strength progression, and personal records (PR)
-- Estimated calories burned (MET-based, deterministic)
-- Body composition measurements and progress over time
-- Daily food & drink intake and calorie targets (BMR → TDEE → Goal Adjustment)
-- Dashboard analytics and deterministic insight engine
-
-**Core principle:** `Track → Calculate → Analyze → Visualize`
-
-All metrics are computed deterministically from raw user data — no AI is used.
+**Core Product Concept:** `Track → Calculate → Analyze → Visualize → Improve`
 
 ---
 
 ## Tech Stack
 
-| Layer      | Technology                     |
-| ---------- | ------------------------------ |
-| Runtime    | Node.js                        |
-| Framework  | NestJS 11 + TypeScript (strict)|
-| ORM        | Prisma 8                       |
-| Database   | PostgreSQL 16                  |
-| Validation | Zod + nestjs-zod               |
-| Config     | @nestjs/config                 |
-| Container  | Docker + Docker Compose        |
-| Pkg Mgr    | pnpm                           |
+| Component | Technology | Description |
+| :--- | :--- | :--- |
+| **Framework** | NestJS 11 | Modular monolith backend architecture |
+| **Language** | TypeScript 5.7+ | Strict typing mode, zero `any` |
+| **Database ORM** | Prisma 7.10 | Multi-schema PostgreSQL ORM with migrations |
+| **Database** | PostgreSQL 16 (Supabase) | Multi-schema relational database |
+| **Validation** | Zod + nestjs-zod | Schema-first DTO validation |
+| **Documentation** | Swagger OpenAPI 3.0 | Auto-generated interactive API docs (`/api/docs`) |
+| **Password Hashing**| Argon2id | Memory-hard password hashing algorithm |
+| **Email Transport** | Nodemailer (SMTP) | Transactional OTP emails |
+| **Container** | Docker (Multi-stage) | Lean production image optimized for Render |
+| **Package Manager**| pnpm 10+ | Fast, deterministic dependency resolution |
 
 ---
 
-## Architecture
+## Architecture & Layer Boundaries
 
-```
-Modular Monolith
-```
+The backend implements **Clean Architecture Lite (DDD-lite)** with isolated layers and strict dependency flow:
 
-```
-Client
-  ↓
-Controller          ← HTTP layer, input validation
-  ↓
-Service / Use Case  ← Orchestration, business flow
-  ↓
-Domain Logic        ← Calculation engine (BMR, TDEE, volume, PR, etc.)
-  ↓
-Repository / Prisma ← Data access
-  ↓
-PostgreSQL
+```text
+HTTP Request (Client)
+      ↓
+Modules Layer (Controllers & Schemas)
+      ↓
+Application Layer (Use-Cases: 1 Use-Case = 1 File)
+      ↓
+Domain Layer (Pure Entities, Enums, Calculators, Repository Interfaces)
+      ↓
+Infrastructure Layer (Prisma Repositories, Mailer, External Adapters)
+      ↓
+PostgreSQL Database (Supabase)
 ```
 
-Calculation logic (BMR, TDEE, workout volume, active/rest/transition time, calorie burn estimation) lives in the **domain layer**, not in controllers or repositories.
-
----
-
-## Modules
-
-| Module                  | Responsibility                                                    |
-| ----------------------- | ----------------------------------------------------------------- |
-| `AuthModule`            | Register, login, logout, refresh token, password reset            |
-| `UsersModule`           | User identity management                                          |
-| `ProfilesModule`        | User biometric profile (age, gender, height, weight, goal)        |
-| `ExercisesModule`       | Exercise catalogue (predefined, not user-owned)                   |
-| `WorkoutsModule`        | Workout sessions, exercises, sets, transitions, timing analytics  |
-| `BodyMeasurementsModule`| Body composition entries and progress tracking                    |
-| `NutritionModule`       | Food & drink entries, daily calorie intake                        |
-| `CaloriesModule`        | Daily calorie target (BMR → TDEE → Goal Adjustment)               |
-| `AnalyticsModule`       | Dashboard, historical trends, strength progression                |
-| `InsightsModule`        | Deterministic insight engine (no AI)                              |
+1. **Domain Layer (`src/domain/`)**: Pure TypeScript logic (Mifflin-St Jeor BMR, TDEE, Calorie Target, Macro distribution). **Zero dependencies on NestJS or Prisma**.
+2. **Application Layer (`src/application/`)**: Encapsulates business actions as individual Use-Case classes (e.g. `RegisterUseCase`, `UpsertProfileUseCase`, `GetDailyCalorieTargetUseCase`) with co-located unit tests (`*.spec.ts`).
+3. **Infrastructure Layer (`src/infrastructure/`)**: Prisma database repositories implementing domain interfaces and converting records to domain entities.
+4. **Modules Layer (`src/modules/`)**: REST controllers, route mapping, Zod DTOs, and Swagger OpenAPI decorators.
 
 ---
 
 ## Database Schemas
 
-The database uses **PostgreSQL schemas** to namespace tables by domain:
+The PostgreSQL database uses dedicated schemas to namespace domain tables:
 
-| Schema      | Tables                                                                   |
-| ----------- | ------------------------------------------------------------------------ |
-| `auth`      | `users`                                                                  |
-| `profile`   | `user_profiles`                                                          |
-| `exercise`  | `muscle_groups`, `exercises`, `exercise_secondary_muscles`               |
-| `workout`   | `workouts`, `workout_exercises`, `workout_sets`, `workout_transitions`   |
-| `body`      | `body_measurements`                                                      |
-| `nutrition` | `nutrition_entries`                                                      |
-| `calorie`   | `daily_calorie_targets`                                                  |
-| `analytics` | `personal_records`, `insights`                                           |
-
-See [`erd.dbml`](../erd.dbml) in the project root for the full Entity-Relationship Diagram.
+| Schema | Tables / Enums | Deskripsi |
+| :--- | :--- | :--- |
+| **`identity`** | `users`, `otp_tokens`, `OtpType` | Akun pengguna, otentikasi, dan siklus hidup kode OTP. |
+| **`profile`** | `user_profiles`, `Gender`, `ActivityLevel`, `FitnessGoal`, `DietPace` | Profil biometrik, preferensi diet (*Santai/Standar/Ekstrem*), dan reminder 30 hari. |
+| **`calorie`** | `daily_calorie_targets` | Snapshot harian target kalori, BMR, TDEE, dan pembagian makronutrisi. |
+| **`exercise`** | `muscle_groups`, `exercises`, `exercise_secondary_muscles` | Katalog master gerakan & otot. |
+| **`workout`** | `workouts`, `workout_exercises`, `workout_sets`, `workout_transitions` | Sesi latihan, set beban/reps, dan durasi istirahat. |
+| **`body`** | `body_measurements` | Catatan komposisi tubuh (berat, Body Fat %, Skeletal Muscle). |
+| **`nutrition`** | `nutrition_entries` | Log harian konsumsi makanan & minuman. |
+| **`analytics`** | `personal_records`, `insights` | Personal Records (PR) dan insight deterministik. |
 
 ---
 
 ## Prerequisites
 
-- [Node.js](https://nodejs.org/) >= 20
-- [pnpm](https://pnpm.io/) >= 9
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- [Node.js](https://nodejs.org/) >= 20.x
+- [pnpm](https://pnpm.io/) >= 9.x
+- [PostgreSQL](https://www.postgresql.org/) 16 or [Supabase](https://supabase.com/)
 
 ---
 
 ## Environment Variables
 
-Add `.env` and fill in the values:
+Salin `.env.example` menjadi `.env` dan lengkapi nilai konfigurasi:
 
-| Variable          | Description                            | Example                         |
-| ----------------- | -------------------------------------- | ------------------------------- |
-| `DATABASE_URL`    | Prisma PostgreSQL connection string    | See above                       |
-| `PORT`            | HTTP port the server listens on        | `3000`                          |
-| `NODE_ENV`        | Environment mode                       | `development` / `production`    |
-| `POSTGRES_PASSWORD` | Password used by Docker Compose      | Strong password                 |
+```env
+# Application
+PORT=3000
+NODE_ENV=development
+
+# Database (PostgreSQL / Supabase)
+DATABASE_URL="postgresql://postgres.[REF]:[PASSWORD]@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
+DIRECT_URL="postgresql://postgres.[REF]:[PASSWORD]@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres"
+
+# JWT Authentication
+JWT_SECRET="your-super-secret-jwt-key"
+JWT_EXPIRES_IN="3h"
+
+# OTP Settings
+OTP_EXPIRES_MINUTES=5
+OTP_MAX_ATTEMPTS=5
+
+# SMTP Email (Gmail / Resend)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=your-email@gmail.com
+SMTP_PASSWORD="your-google-app-password"
+SMTP_FROM="Gym Analytics <your-email@gmail.com>"
+```
 
 ---
 
 ## Getting Started
 
-### 1. Clone & install dependencies
-
 ```bash
+# 1. Install dependencies
 pnpm install
-```
 
-### 2. Start the database
-
-```bash
-docker compose up -d
-```
-
-PostgreSQL will be available at `localhost:55432`.
-
-Verify the container is running:
-
-```bash
-docker compose ps
-```
-
-### 3. Run database migrations
-
-```bash
-# Generate Prisma client
+# 2. Generate Prisma Client
 pnpm prisma generate
 
-# Run migrations
-pnpm prisma migrate dev --name init
+# 3. Jalankan migrasi database
+pnpm prisma migrate dev
+
+# 4. Jalankan Development Server
+pnpm run start:dev
 ```
 
-### 4. Seed exercise data (optional)
+- **API Base URL**: `http://localhost:3000/api/v1`
+- **Swagger Documentation**: `http://localhost:3000/api/docs`
+
+---
+
+## API Endpoints & Swagger
+
+### 1. Authentication (`/api/v1/auth`)
+- `POST /api/v1/auth/register` ➔ Registrasi akun baru & kirim OTP email
+- `POST /api/v1/auth/login` ➔ Login akun & peroleh JWT Access Token
+- `POST /api/v1/auth/verify-email` ➔ Verifikasi akun dengan OTP 6 digit
+- `POST /api/v1/auth/resend-otp` ➔ Kirim ulang OTP (verifikasi / reset password)
+- `POST /api/v1/auth/forgot-password` ➔ Request kode OTP reset password
+- `POST /api/v1/auth/reset-password` ➔ Reset password dengan OTP dan hash Argon2
+
+### 2. User Profile (`/api/v1/profile`) — `[Bearer JWT Required]`
+- `GET /api/v1/profile/me` ➔ Profil fisik user & status pengingat evaluasi 30 hari
+- `PUT /api/v1/profile/me` ➔ Buat / perbarui data profil fisik & auto-refresh target kalori
+
+### 3. Calorie Engine (`/api/v1/calorie`) — `[Bearer JWT Required]`
+- `GET /api/v1/calorie/target/today` ➔ Snapshot target kalori & makronutrisi aktif hari ini
+- `POST /api/v1/calorie/preview` ➔ Simulator instan kalkulasi BMR, TDEE, dan Makro
+
+---
+
+## Testing & Quality Assurance
 
 ```bash
-pnpm prisma db seed
+# Menjalankan seluruh test suite unit tests (Jest)
+pnpm test
+
+# Menjalankan test dalam mode watch
+pnpm test:watch
+
+# Menjalankan linter & auto-fix (ESLint)
+pnpm run lint
+
+# Membangun bundle produksi (TypeScript build)
+pnpm run build
 ```
 
 ---
 
-## Running the Server
+## Production Docker Deployment
+
+Aplikasi siap di-deploy ke **Render** atau cloud hosting lainnya menggunakan `Dockerfile`:
 
 ```bash
-# Development (watch mode — auto-restart on file change)
-pnpm start:dev
+# Build Docker Image
+docker build -t gym-analytics-backend .
 
-# Development (single run)
-pnpm start
-
-# Debug mode
-pnpm start:debug
-
-# Production
-pnpm start:prod
+# Run Docker Container
+docker run -p 3000:3000 --env-file .env gym-analytics-backend
 ```
 
 ---
 
-## API Base URL
+## License
 
-```
-http://localhost:3000/api/v1
-```
-
----
-
-## API Endpoints
-
-### Authentication
-
-```
-POST   /api/v1/auth/register
-POST   /api/v1/auth/login
-POST   /api/v1/auth/logout
-POST   /api/v1/auth/refresh
-POST   /api/v1/auth/forgot-password
-POST   /api/v1/auth/reset-password
-```
-
-### Profile
-
-```
-GET    /api/v1/profile
-PATCH  /api/v1/profile
-```
-
-### Exercises
-
-```
-GET    /api/v1/exercises
-GET    /api/v1/exercises/:id
-```
-
-Query: `?search=&equipment=&muscleGroup=`
-
-### Workouts
-
-```
-POST   /api/v1/workouts
-GET    /api/v1/workouts
-GET    /api/v1/workouts/:id
-PATCH  /api/v1/workouts/:id
-DELETE /api/v1/workouts/:id
-```
-
-### Body Measurements
-
-```
-POST   /api/v1/body-measurements
-GET    /api/v1/body-measurements
-GET    /api/v1/body-measurements/:id
-PATCH  /api/v1/body-measurements/:id
-DELETE /api/v1/body-measurements/:id
-```
-
-### Nutrition
-
-```
-POST   /api/v1/nutrition
-GET    /api/v1/nutrition
-GET    /api/v1/nutrition/:id
-PATCH  /api/v1/nutrition/:id
-DELETE /api/v1/nutrition/:id
-```
-
-Query: `?date=&from=&to=&type=`
-
-### Analytics
-
-```
-GET    /api/v1/analytics/dashboard
-GET    /api/v1/analytics/body
-GET    /api/v1/analytics/workout
-GET    /api/v1/analytics/nutrition
-GET    /api/v1/analytics/calories
-```
-
-### Insights
-
-```
-GET    /api/v1/insights
-```
-
-Query: `?type=&severity=&date=`
-
----
-
-## Scripts
-
-| Command               | Description                              |
-| --------------------- | ---------------------------------------- |
-| `pnpm start:dev`      | Start server in watch mode               |
-| `pnpm start:prod`     | Start compiled production server         |
-| `pnpm build`          | Compile TypeScript to `dist/`            |
-| `pnpm test`           | Run unit tests                           |
-| `pnpm test:e2e`       | Run end-to-end tests                     |
-| `pnpm test:cov`       | Run tests with coverage report           |
-| `pnpm lint`           | Lint & auto-fix with ESLint + Prettier   |
-| `pnpm format`         | Format source with Prettier              |
-| `pnpm prisma studio`  | Open Prisma Studio (GUI for database)    |
-| `pnpm prisma migrate dev` | Run migrations in development        |
-| `pnpm prisma generate` | Regenerate Prisma client                |
-
----
-
-## Project Structure
-
-```
-gym-analytics-backend/
-├── src/
-│   ├── main.ts                   # App entry point
-│   ├── app.module.ts             # Root module
-│   │
-│   ├── auth/                     # AuthModule — register, login, JWT
-│   ├── users/                    # UsersModule — user identity
-│   ├── profiles/                 # ProfilesModule — biometric profile
-│   ├── exercises/                # ExercisesModule — exercise catalogue
-│   ├── workouts/                 # WorkoutsModule — session, set, timing
-│   ├── body-measurements/        # BodyMeasurementsModule — composition
-│   ├── nutrition/                # NutritionModule — food & drink
-│   ├── calories/                 # CaloriesModule — BMR/TDEE/target
-│   ├── analytics/                # AnalyticsModule — dashboard, trends
-│   ├── insights/                 # InsightsModule — deterministic rules
-│   │
-│   └── common/
-│       ├── enums/                # Shared enums (gender, goal, status…)
-│       ├── filters/              # Global exception filters
-│       ├── guards/               # Auth guards (JWT)
-│       ├── interceptors/         # Response transform interceptor
-│       └── pipes/                # Validation pipes
-│
-├── prisma/
-│   ├── schema.prisma             # Prisma schema
-│   ├── migrations/               # Migration history
-│   └── seed.ts                   # Seed data (muscle groups, exercises)
-│
-├── test/                         # E2E tests
-├── docker-compose.yml            # PostgreSQL container
-├── .env                          # Local environment variables (git-ignored)
-├── .env.example                  # Environment variable template
-├── nest-cli.json
-├── tsconfig.json
-└── package.json
-```
-
----
-
-## Business Rules Reference
-
-Key business rules from the PRD implemented in the calculation engine:
-
-| Rule   | Formula / Rule                                              |
-| ------ | ----------------------------------------------------------- |
-| BR-002 | `volume = weight_kg × reps`                                 |
-| BR-003 | `Active Time = Σ set.duration_seconds`                      |
-| BR-004 | `Rest Time = Σ set.rest_seconds`                            |
-| BR-005 | `Transition Time = Σ workout_transition.duration_seconds`   |
-| BR-006 | `Session Duration = completed_at - started_at`              |
-| BR-007 | `Tracked Time = Active + Rest + Transition`                 |
-| BR-008 | `Idle Time = Session Duration - Tracked Time` (min 0)       |
-| BR-009 | `Active Ratio = Active Time / Session Duration × 100`       |
-| BR-010 | `Daily Calories = Σ food.calories + Σ drink.calories`       |
-| BR-011 | BMR via **Mifflin-St Jeor** formula                         |
-| BR-012 | `TDEE = BMR × Activity Factor`                              |
-| BR-013 | `Daily Target = TDEE + Goal Adjustment` (configurable)      |
-| BR-015 | Body progress = comparison between consecutive measurements |
-| BR-017 | CANCELLED workouts excluded from analytics                  |
-| BR-018 | Derived analytics always recalculated from raw data         |
-| BR-020 | Food calories come from manual user input (no food database)|
-
-> All estimated calorie burn values use the **MET-based formula**:
-> `Calories = MET × body_weight_kg × duration_hours`
-> and must be labeled **"Estimated"** — never "Actual".
-
----
-
-*Aligned with [`prd.md`](../prd.md) v1.0 and [`erd.dbml`](../erd.dbml) v2.0*
+Private Repository — Hak Cipta Terpelihara &copy; 2026 Gym Analytics Platform.

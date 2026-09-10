@@ -5,16 +5,21 @@ import {
   LoginUseCase,
   VerifyEmailUseCase,
   ResendOtpUseCase,
+  LogoutUseCase,
+  GoogleAuthUseCase,
 } from '../../application/auth';
 import {
   RegisterDto,
   VerifyEmailDto,
   ResendOtpDto,
   LoginDto,
+  LogoutDto,
+  GoogleAuthDto,
   RegisterResponseDto,
   VerifyEmailResponseDto,
   ResendOtpResponseDto,
   LoginResponseDto,
+  LogoutResponseDto,
 } from './schemas';
 
 @ApiTags('Auth')
@@ -25,6 +30,8 @@ export class AuthController {
     private readonly loginUseCase: LoginUseCase,
     private readonly verifyEmailUseCase: VerifyEmailUseCase,
     private readonly resendOtpUseCase: ResendOtpUseCase,
+    private readonly logoutUseCase: LogoutUseCase,
+    private readonly googleAuthUseCase: GoogleAuthUseCase,
   ) {}
 
   @Post('register')
@@ -79,6 +86,46 @@ export class AuthController {
   })
   async login(@Body() dto: LoginDto): Promise<LoginResponseDto> {
     return this.loginUseCase.execute(dto);
+  }
+
+  @Post('google')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Google SSO login and registration',
+    description:
+      'Authenticates or automatically registers a user with Google OAuth credentials. Returns a signed JWT access token.',
+  })
+  @ApiResponse({
+    status: 200,
+    description:
+      'Google SSO authentication successful. Returns access token and user profile.',
+    type: LoginResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid Google token or credentials.',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'User account is deactivated or suspended.',
+  })
+  async googleAuth(@Body() dto: GoogleAuthDto): Promise<LoginResponseDto> {
+    return this.googleAuthUseCase.execute(dto);
+  }
+
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Logout user session',
+    description: 'Terminates user session and invalidates access credentials.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'User successfully logged out.',
+    type: LogoutResponseDto,
+  })
+  async logout(@Body() dto?: LogoutDto): Promise<LogoutResponseDto> {
+    return this.logoutUseCase.execute(dto);
   }
 
   @Post('verify-email')

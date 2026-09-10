@@ -11,7 +11,7 @@ import { Request } from 'express';
 export interface JwtPayload {
   sub: string;
   email: string;
-  role: string;
+  isAdmin: boolean;
 }
 
 declare module 'express' {

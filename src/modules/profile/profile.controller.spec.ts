@@ -21,7 +21,7 @@ describe('ProfileController', () => {
   const mockUser: JwtPayload = {
     sub: 'user-uuid-1',
     email: 'user@example.com',
-    role: 'USER',
+    isAdmin: false,
   };
 
   const mockResponse = {

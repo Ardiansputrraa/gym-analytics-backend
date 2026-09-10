@@ -4,7 +4,6 @@ import { ResendOtpUseCase } from './resend-otp.use-case';
 import { USER_REPOSITORY } from '../../domain/repositories/user.repository.interface';
 import { OtpService } from './otp.service';
 import { MailService } from '../../infrastructure/mail/mail.service';
-import { UserRole } from '../../domain/enums/user-role.enum';
 import { OtpType } from '../../domain/enums/otp-type.enum';
 import { UserEntity } from '../../domain/entities/user.entity';
 
@@ -56,7 +55,7 @@ describe('ResendOtpUseCase', () => {
         name: 'Test User',
         phone: '081234567890',
         passwordHash: 'hashed_password',
-        role: UserRole.USER,
+        isAdmin: false,
         isActive: true,
         emailVerifiedAt: null,
         createdAt: new Date(),
@@ -108,7 +107,7 @@ describe('ResendOtpUseCase', () => {
         name: 'Test User',
         phone: null,
         passwordHash: 'hashed_password',
-        role: UserRole.USER,
+        isAdmin: false,
         isActive: true,
         emailVerifiedAt: new Date(),
         createdAt: new Date(),

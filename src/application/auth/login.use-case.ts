@@ -69,7 +69,7 @@ export class LoginUseCase {
     const payload = {
       sub: user.id,
       email: user.email,
-      role: user.role,
+      isAdmin: user.isAdmin,
     };
 
     const accessToken = await this.jwtService.signAsync(payload);
@@ -88,7 +88,7 @@ export class LoginUseCase {
         email: user.email,
         name: user.name,
         phone: user.phone ?? null,
-        role: user.role,
+        isAdmin: user.isAdmin,
       },
     };
   }

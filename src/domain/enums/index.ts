@@ -1,4 +1,3 @@
-export * from './user-role.enum';
 export * from './otp-type.enum';
 export * from './gender.enum';
 export * from './activity-level.enum';
