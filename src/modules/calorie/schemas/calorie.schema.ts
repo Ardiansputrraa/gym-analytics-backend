@@ -22,9 +22,12 @@ export const CalculateCaloriePreviewSchema = z.object({
     .number({ message: 'Berat badan wajib diisi' })
     .min(20, 'Berat badan minimal 20 kg')
     .max(500, 'Berat badan maksimal 500 kg'),
-  activityLevel: z.nativeEnum(ActivityLevel, {
-    message: 'Tingkat aktivitas wajib dipilih',
-  }),
+  activityLevel: z
+    .nativeEnum(ActivityLevel, {
+      message: 'Tingkat aktivitas harus valid',
+    })
+    .default(ActivityLevel.SEDENTARY)
+    .optional(),
   fitnessGoal: z.nativeEnum(FitnessGoal, {
     message: 'Target kebugaran wajib dipilih',
   }),
@@ -49,6 +52,7 @@ export const DailyCalorieTargetResponseSchema = z.object({
   proteinGrams: z.number().nullable(),
   carbsGrams: z.number().nullable(),
   fatGrams: z.number().nullable(),
+  waterTargetMl: z.number().optional().nullable(),
 });
 
 export class DailyCalorieTargetResponseDto extends createZodDto(

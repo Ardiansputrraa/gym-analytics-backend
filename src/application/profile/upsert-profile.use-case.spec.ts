@@ -13,7 +13,7 @@ import { DietPace } from '../../domain/enums/diet-pace.enum';
 
 describe('UpsertProfileUseCase', () => {
   let useCase: UpsertProfileUseCase;
-  let mockUserRepository: { findById: jest.Mock };
+  let mockUserRepository: { findById: jest.Mock; update: jest.Mock };
   let mockProfileRepository: { upsert: jest.Mock };
   let mockCalorieTargetRepository: { upsert: jest.Mock };
 
@@ -47,6 +47,7 @@ describe('UpsertProfileUseCase', () => {
   beforeEach(async () => {
     mockUserRepository = {
       findById: jest.fn(),
+      update: jest.fn().mockResolvedValue(mockUser),
     };
     mockProfileRepository = {
       upsert: jest.fn(),
@@ -87,17 +88,19 @@ describe('UpsertProfileUseCase', () => {
     });
 
     expect(mockUserRepository.findById).toHaveBeenCalledWith('user-uuid-1');
-    expect(mockProfileRepository.upsert).toHaveBeenCalledWith({
-      userId: 'user-uuid-1',
-      age: 25,
-      gender: Gender.MALE,
-      heightCm: 175,
-      weightKg: 70,
-      activityLevel: ActivityLevel.MODERATE,
-      fitnessGoal: FitnessGoal.FAT_LOSS,
-      dietPace: DietPace.STANDARD,
-      checkInIntervalDays: 30,
-    });
+    expect(mockProfileRepository.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: 'user-uuid-1',
+        age: 25,
+        gender: Gender.MALE,
+        heightCm: 175,
+        weightKg: 70,
+        activityLevel: ActivityLevel.MODERATE,
+        fitnessGoal: FitnessGoal.FAT_LOSS,
+        dietPace: DietPace.STANDARD,
+        checkInIntervalDays: 30,
+      }),
+    );
     expect(mockCalorieTargetRepository.upsert).toHaveBeenCalledWith(
       expect.objectContaining({
         userId: 'user-uuid-1',
@@ -111,7 +114,7 @@ describe('UpsertProfileUseCase', () => {
       }),
     );
     expect(result.userId).toBe('user-uuid-1');
-    expect(result.checkInStatus.needsUpdate).toBe(false);
+    expect(result.checkInStatus?.needsUpdate).toBe(false);
   });
 
   it('should throw NotFoundException when user does not exist', async () => {

@@ -109,6 +109,16 @@ model UserProfile {
   fitnessGoal         FitnessGoal   @map("fitness_goal")
   dietPace            DietPace      @default(STANDARD) @map("diet_pace")
   checkInIntervalDays Int           @default(30) @map("check_in_interval_days") @db.SmallInt
+
+  // Struk Body Composition Analyzer Detailed Fields (Optional)
+  skeletalMuscleKg    Decimal?      @map("skeletal_muscle_kg") @db.Decimal(6, 2)
+  bodyFatPct          Decimal?      @map("body_fat_pct") @db.Decimal(5, 2)
+  bodyFatKg           Decimal?      @map("body_fat_kg") @db.Decimal(6, 2)
+  fatFreeMassKg       Decimal?      @map("fat_free_mass_kg") @db.Decimal(6, 2)
+  waterContentKg      Decimal?      @map("water_content_kg") @db.Decimal(6, 2)
+  proteinKg           Decimal?      @map("protein_kg") @db.Decimal(6, 2)
+  mineralKg           Decimal?      @map("mineral_kg") @db.Decimal(6, 2)
+
   isDeleted           Boolean       @default(false) @map("is_deleted")
   deletedAt           DateTime?     @map("deleted_at") @db.Timestamptz(6)
   createdAt           DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)

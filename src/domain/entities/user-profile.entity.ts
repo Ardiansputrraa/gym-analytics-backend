@@ -14,6 +14,13 @@ export interface UserProfileProps {
   fitnessGoal: FitnessGoal;
   dietPace?: DietPace;
   checkInIntervalDays?: number;
+  skeletalMuscleKg?: number | null;
+  bodyFatPct?: number | null;
+  bodyFatKg?: number | null;
+  fatFreeMassKg?: number | null;
+  waterContentKg?: number | null;
+  proteinKg?: number | null;
+  mineralKg?: number | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -29,6 +36,13 @@ export class UserProfileEntity {
   readonly fitnessGoal: FitnessGoal;
   readonly dietPace: DietPace;
   readonly checkInIntervalDays: number;
+  readonly skeletalMuscleKg: number | null;
+  readonly bodyFatPct: number | null;
+  readonly bodyFatKg: number | null;
+  readonly fatFreeMassKg: number | null;
+  readonly waterContentKg: number | null;
+  readonly proteinKg: number | null;
+  readonly mineralKg: number | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;
 
@@ -43,6 +57,13 @@ export class UserProfileEntity {
     this.fitnessGoal = props.fitnessGoal;
     this.dietPace = props.dietPace ?? DietPace.STANDARD;
     this.checkInIntervalDays = props.checkInIntervalDays ?? 30;
+    this.skeletalMuscleKg = props.skeletalMuscleKg ?? null;
+    this.bodyFatPct = props.bodyFatPct ?? null;
+    this.bodyFatKg = props.bodyFatKg ?? null;
+    this.fatFreeMassKg = props.fatFreeMassKg ?? null;
+    this.waterContentKg = props.waterContentKg ?? null;
+    this.proteinKg = props.proteinKg ?? null;
+    this.mineralKg = props.mineralKg ?? null;
     this.createdAt = props.createdAt;
     this.updatedAt = props.updatedAt;
   }

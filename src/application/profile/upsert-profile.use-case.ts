@@ -14,6 +14,7 @@ import {
 import { calculateBmr } from '../../domain/calculators/bmr.calculator';
 import { calculateTdee } from '../../domain/calculators/tdee.calculator';
 import { calculateCalorieTarget } from '../../domain/calculators/calorie-target.calculator';
+import { ActivityLevel } from '../../domain/enums/activity-level.enum';
 import { DietPace } from '../../domain/enums/diet-pace.enum';
 import type {
   UpsertProfileDto,
@@ -44,8 +45,31 @@ export class UpsertProfileUseCase {
       });
     }
 
+    let currentUser = user;
+    if (dto.name !== undefined || dto.phone !== undefined) {
+      currentUser = await this.userRepository.update(userId, {
+        name: dto.name,
+        phone: dto.phone,
+      });
+    }
+
     const dietPace = dto.dietPace ?? DietPace.STANDARD;
+    const activityLevel = dto.activityLevel ?? ActivityLevel.SEDENTARY;
     const checkInIntervalDays = dto.checkInIntervalDays ?? 30;
+
+    const computedBodyFatKg =
+      dto.bodyFatKg !== undefined
+        ? dto.bodyFatKg
+        : dto.bodyFatPct && dto.weightKg
+          ? Number(((dto.bodyFatPct / 100) * dto.weightKg).toFixed(2))
+          : null;
+
+    const computedBodyFatPct =
+      dto.bodyFatPct !== undefined
+        ? dto.bodyFatPct
+        : dto.bodyFatKg && dto.weightKg
+          ? Number(((dto.bodyFatKg / dto.weightKg) * 100).toFixed(2))
+          : null;
 
     // 1. Save / Update User Profile
     const profile = await this.profileRepository.upsert({
@@ -54,10 +78,17 @@ export class UpsertProfileUseCase {
       gender: dto.gender,
       heightCm: dto.heightCm,
       weightKg: dto.weightKg,
-      activityLevel: dto.activityLevel,
+      activityLevel,
       fitnessGoal: dto.fitnessGoal,
       dietPace,
       checkInIntervalDays,
+      skeletalMuscleKg: dto.skeletalMuscleKg,
+      bodyFatPct: computedBodyFatPct,
+      bodyFatKg: computedBodyFatKg,
+      fatFreeMassKg: dto.fatFreeMassKg,
+      waterContentKg: dto.waterContentKg,
+      proteinKg: dto.proteinKg,
+      mineralKg: dto.mineralKg,
     });
 
     // 2. Calculate BMR, TDEE, Calorie Target & Macros
@@ -103,6 +134,34 @@ export class UpsertProfileUseCase {
     return {
       id: profile.id,
       userId: profile.userId,
+      user: {
+        id: currentUser.id,
+        email: currentUser.email,
+        name: currentUser.name,
+        phone: currentUser.phone ?? null,
+        isAdmin: currentUser.isAdmin,
+      },
+      profile: {
+        id: profile.id,
+        userId: profile.userId,
+        age: profile.age,
+        gender: profile.gender,
+        heightCm: profile.heightCm,
+        weightKg: profile.weightKg,
+        activityLevel: profile.activityLevel,
+        fitnessGoal: profile.fitnessGoal,
+        dietPace: profile.dietPace,
+        checkInIntervalDays: profile.checkInIntervalDays,
+        skeletalMuscleKg: profile.skeletalMuscleKg,
+        bodyFatPct: profile.bodyFatPct,
+        bodyFatKg: profile.bodyFatKg,
+        fatFreeMassKg: profile.fatFreeMassKg,
+        waterContentKg: profile.waterContentKg,
+        proteinKg: profile.proteinKg,
+        mineralKg: profile.mineralKg,
+        createdAt: profile.createdAt.toISOString(),
+        updatedAt: profile.updatedAt.toISOString(),
+      },
       age: profile.age,
       gender: profile.gender,
       heightCm: profile.heightCm,
@@ -111,6 +170,13 @@ export class UpsertProfileUseCase {
       fitnessGoal: profile.fitnessGoal,
       dietPace: profile.dietPace,
       checkInIntervalDays: profile.checkInIntervalDays,
+      skeletalMuscleKg: profile.skeletalMuscleKg,
+      bodyFatPct: profile.bodyFatPct,
+      bodyFatKg: profile.bodyFatKg,
+      fatFreeMassKg: profile.fatFreeMassKg,
+      waterContentKg: profile.waterContentKg,
+      proteinKg: profile.proteinKg,
+      mineralKg: profile.mineralKg,
       checkInStatus: {
         needsUpdate,
         daysSinceLastUpdate,
@@ -119,6 +185,7 @@ export class UpsertProfileUseCase {
           ? `Sudah ${daysSinceLastUpdate} hari sejak update profil terakhir. Timbang berat badan Anda untuk kalibrasi target kalori yang lebih akurat.`
           : `Profil aktif dan target kalori telah diperbarui. Update berikutnya dalam ${Math.max(0, profile.checkInIntervalDays - daysSinceLastUpdate)} hari.`,
       },
+      message: 'Profil fisik dan target kalori harian berhasil disimpan.',
       createdAt: profile.createdAt.toISOString(),
       updatedAt: profile.updatedAt.toISOString(),
     };

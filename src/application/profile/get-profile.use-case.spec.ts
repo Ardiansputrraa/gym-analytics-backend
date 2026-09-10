@@ -2,7 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
 import { GetProfileUseCase } from './get-profile.use-case';
 import { USER_PROFILE_REPOSITORY } from '../../domain/repositories/user-profile.repository.interface';
+import { USER_REPOSITORY } from '../../domain/repositories/user.repository.interface';
 import { UserProfileEntity } from '../../domain/entities/user-profile.entity';
+import { UserEntity } from '../../domain/entities/user.entity';
 import { Gender } from '../../domain/enums/gender.enum';
 import { ActivityLevel } from '../../domain/enums/activity-level.enum';
 import { FitnessGoal } from '../../domain/enums/fitness-goal.enum';
@@ -11,16 +13,33 @@ import { DietPace } from '../../domain/enums/diet-pace.enum';
 describe('GetProfileUseCase', () => {
   let useCase: GetProfileUseCase;
   let mockProfileRepository: { findByUserId: jest.Mock };
+  let mockUserRepository: { findById: jest.Mock };
+
+  const mockUser = new UserEntity({
+    id: 'user-uuid-1',
+    email: 'user@example.com',
+    passwordHash: 'hash',
+    name: 'John Doe',
+    isAdmin: false,
+    isActive: true,
+    emailVerifiedAt: new Date(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
 
   beforeEach(async () => {
     mockProfileRepository = {
       findByUserId: jest.fn(),
+    };
+    mockUserRepository = {
+      findById: jest.fn().mockResolvedValue(mockUser),
     };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         GetProfileUseCase,
         { provide: USER_PROFILE_REPOSITORY, useValue: mockProfileRepository },
+        { provide: USER_REPOSITORY, useValue: mockUserRepository },
       ],
     }).compile();
 
@@ -50,7 +69,8 @@ describe('GetProfileUseCase', () => {
       'user-uuid-1',
     );
     expect(result.userId).toBe('user-uuid-1');
-    expect(result.checkInStatus.needsUpdate).toBe(false);
+    expect(result.user?.name).toBe('John Doe');
+    expect(result.checkInStatus?.needsUpdate).toBe(false);
   });
 
   it('should flag checkInStatus needsUpdate=true when >= 30 days old', async () => {
@@ -73,15 +93,26 @@ describe('GetProfileUseCase', () => {
 
     const result = await useCase.execute('user-uuid-1');
 
-    expect(result.checkInStatus.needsUpdate).toBe(true);
-    expect(result.checkInStatus.daysSinceLastUpdate).toBeGreaterThanOrEqual(39);
-    expect(result.checkInStatus.message).toContain('Timbang berat badan Anda');
+    expect(result.checkInStatus?.needsUpdate).toBe(true);
+    expect(result.checkInStatus?.daysSinceLastUpdate).toBeGreaterThanOrEqual(39);
+    expect(result.checkInStatus?.message).toContain('Timbang berat badan Anda');
   });
 
-  it('should throw NotFoundException when profile does not exist', async () => {
+  it('should return user info with null profile when profile is not yet created', async () => {
     mockProfileRepository.findByUserId.mockResolvedValue(null);
 
-    await expect(useCase.execute('user-without-profile')).rejects.toThrow(
+    const result = await useCase.execute('user-uuid-1');
+
+    expect(result.userId).toBe('user-uuid-1');
+    expect(result.user?.name).toBe('John Doe');
+    expect(result.profile).toBeNull();
+    expect(result.checkInStatus).toBeNull();
+  });
+
+  it('should throw NotFoundException when user does not exist', async () => {
+    mockUserRepository.findById.mockResolvedValue(null);
+
+    await expect(useCase.execute('unknown-user')).rejects.toThrow(
       NotFoundException,
     );
   });
