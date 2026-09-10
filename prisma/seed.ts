@@ -5,6 +5,7 @@ import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { seedMuscleGroups } from './seeds/muscle-groups.seed';
 import { seedExercises } from './seeds/exercises.seed';
+import { seedRoutineTemplates } from './seeds/routines.seed';
 
 const connectionString =
   process.env.DATABASE_URL ||
@@ -22,6 +23,9 @@ async function main() {
 
     // 2. Exercises Master Library (53 items)
     await seedExercises(prisma, muscleGroupMap);
+
+    // 3. Preset Routine Templates
+    await seedRoutineTemplates(prisma);
 
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
     console.log(`✨ Database seeding completed successfully in ${duration}s!`);

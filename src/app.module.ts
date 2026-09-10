@@ -6,6 +6,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { ProfileModule } from './modules/profile/profile.module';
 import { CalorieModule } from './modules/calorie/calorie.module';
 import { ExercisesModule } from './modules/exercises/exercises.module';
+import { WorkoutsModule } from './modules/workouts/workouts.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { ExercisesModule } from './modules/exercises/exercises.module';
     ProfileModule,
     CalorieModule,
     ExercisesModule,
+    WorkoutsModule,
   ],
 })
 export class AppModule {}
