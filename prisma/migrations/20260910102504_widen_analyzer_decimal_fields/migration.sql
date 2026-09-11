@@ -1,0 +1,8 @@
+-- AlterTable
+ALTER TABLE "profile"."user_profiles" ALTER COLUMN "body_fat_kg" SET DATA TYPE DECIMAL(6,2),
+ALTER COLUMN "body_fat_pct" SET DATA TYPE DECIMAL(5,2),
+ALTER COLUMN "fat_free_mass_kg" SET DATA TYPE DECIMAL(6,2),
+ALTER COLUMN "mineral_kg" SET DATA TYPE DECIMAL(6,2),
+ALTER COLUMN "protein_kg" SET DATA TYPE DECIMAL(6,2),
+ALTER COLUMN "skeletal_muscle_kg" SET DATA TYPE DECIMAL(6,2),
+ALTER COLUMN "water_content_kg" SET DATA TYPE DECIMAL(6,2);
