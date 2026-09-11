@@ -10,6 +10,17 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 const server: Express = express();
 let isAppReady = false;
 
+// Redirect Swagger UI static assets to CDN for Vercel Serverless runtime
+server.get('/api/docs/swagger-ui.css', (_req, res) => {
+  res.redirect('https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.18.2/swagger-ui.min.css');
+});
+server.get('/api/docs/swagger-ui-bundle.js', (_req, res) => {
+  res.redirect('https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.18.2/swagger-ui-bundle.min.js');
+});
+server.get('/api/docs/swagger-ui-standalone-preset.js', (_req, res) => {
+  res.redirect('https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.18.2/swagger-ui-standalone-preset.min.js');
+});
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, new ExpressAdapter(server));
 
@@ -38,14 +49,6 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document, {
     customSiteTitle: 'Gym Analytics API Docs',
-    customCssUrl: [
-      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.18.2/swagger-ui.min.css',
-      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.18.2/swagger-ui-standalone-preset.min.css',
-    ],
-    customJs: [
-      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.18.2/swagger-ui-bundle.min.js',
-      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.18.2/swagger-ui-standalone-preset.min.js',
-    ],
     swaggerOptions: {
       persistAuthorization: true,
       docExpansion: 'list',
