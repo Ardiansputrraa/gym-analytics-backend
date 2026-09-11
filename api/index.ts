@@ -65,8 +65,8 @@ server.get(['/api/docs', '/api/docs/', '/docs', '/docs/'], (_req, res) => {
 <head>
   <meta charset="UTF-8">
   <title>Gym Analytics API Docs</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23FF5500'/%3E%3Cg transform='translate(12,12) rotate(-45 20 20)' stroke='%23FFF' stroke-width='4.5' stroke-linecap='round' fill='none'%3E%3Cline x1='6' y1='12' x2='6' y2='28' stroke-width='5'/%3E%3Cline x1='11' y1='15' x2='11' y2='25'/%3E%3Cline x1='11' y1='20' x2='29' y2='20' stroke-width='4'/%3E%3Cline x1='29' y1='15' x2='29' y2='25'/%3E%3Cline x1='34' y1='12' x2='34' y2='28' stroke-width='5'/%3E%3C/g%3E%3C/svg%3E" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.18.2/swagger-ui.min.css" />
-  <link rel="icon" type="image/png" href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.18.2/favicon-32x32.png" />
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
