@@ -3,6 +3,10 @@ import {
   IWorkoutRepository,
   WORKOUT_REPOSITORY_TOKEN,
 } from '../../domain/repositories/workout.repository.interface';
+import {
+  IUserProfileRepository,
+  USER_PROFILE_REPOSITORY,
+} from '../../domain/repositories/user-profile.repository.interface';
 import { WorkoutEntity, PersonalRecordEntity } from '../../domain/entities/workout.entity';
 import { WorkoutStatus } from '../../domain/enums/workout.enums';
 import {
@@ -29,6 +33,8 @@ export class FinishWorkoutUseCase {
   constructor(
     @Inject(WORKOUT_REPOSITORY_TOKEN)
     private readonly workoutRepository: IWorkoutRepository,
+    @Inject(USER_PROFILE_REPOSITORY)
+    private readonly profileRepository: IUserProfileRepository,
   ) {}
 
   async execute(userId: string, workoutId: string): Promise<FinishWorkoutResult> {
@@ -87,6 +93,10 @@ export class FinishWorkoutUseCase {
       new Date(),
     );
 
+    // Fetch user profile weight for accurate calorie telemetry
+    const profile = await this.profileRepository.findByUserId(userId);
+    const userWeight = profile ? Number(profile.weightKg) : 70;
+
     // 6. Calculate summary metrics
     const telemetry = WorkoutTelemetryCalculator.calculateSessionTelemetry({
       startedAt: completedWorkout.startedAt || completedWorkout.createdAt,
@@ -99,7 +109,14 @@ export class FinishWorkoutUseCase {
           e.equipment === 'ROWING_MACHINE' ||
           e.equipment === 'ELLIPTICAL' ||
           e.primaryMuscle === 'CARDIO' ||
-          (e.exerciseName && e.exerciseName.toLowerCase().includes('treadmill')),
+          (e.exerciseName && (
+            e.exerciseName.toLowerCase().includes('treadmill') ||
+            e.exerciseName.toLowerCase().includes('cardio') ||
+            e.exerciseName.toLowerCase().includes('sepeda') ||
+            e.exerciseName.toLowerCase().includes('bike') ||
+            e.exerciseName.toLowerCase().includes('lari') ||
+            e.exerciseName.toLowerCase().includes('running')
+          )),
         );
 
         return {
@@ -115,9 +132,11 @@ export class FinishWorkoutUseCase {
             isCardio,
             inclinePct: s.inclinePct ?? undefined,
             speedKmh: s.speedKmh ?? undefined,
+            caloriesBurned: s.caloriesBurned ? Number(s.caloriesBurned) : undefined,
           })),
         };
       }),
+      userWeightKg: userWeight,
     });
 
     const allSets = completedWorkout.exercises.flatMap((e) => e.sets);

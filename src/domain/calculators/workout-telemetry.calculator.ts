@@ -7,6 +7,7 @@ export interface TelemetrySetInput {
   isCardio?: boolean;
   inclinePct?: number;
   speedKmh?: number;
+  caloriesBurned?: number;
 }
 
 export interface TelemetryExerciseInput {
@@ -80,7 +81,17 @@ export class WorkoutTelemetryCalculator {
             activeDurationSeconds += setDuration;
             restDurationSeconds += setRest;
 
-            if (isSetCardio) {
+            if (s.caloriesBurned && Number(s.caloriesBurned) > 0) {
+              if (isSetCardio) {
+                cardioCaloriesTotal += Number(s.caloriesBurned);
+                cardioActiveSeconds += setDuration;
+              } else {
+                const w = Math.max(0, Number(s.weightKg) || 0);
+                const r = Math.max(0, Number(s.reps) || 0);
+                totalVolumeKg += w * r;
+                cardioCaloriesTotal += Number(s.caloriesBurned);
+              }
+            } else if (isSetCardio) {
               cardioActiveSeconds += setDuration;
               const speedKmh = Math.max(0, Number(s.speedKmh) || 4.8);
               const inclinePct = Math.max(0, Number(s.inclinePct) || 0);

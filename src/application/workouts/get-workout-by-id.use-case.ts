@@ -3,6 +3,10 @@ import {
   IWorkoutRepository,
   WORKOUT_REPOSITORY_TOKEN,
 } from '../../domain/repositories/workout.repository.interface';
+import {
+  IUserProfileRepository,
+  USER_PROFILE_REPOSITORY,
+} from '../../domain/repositories/user-profile.repository.interface';
 import { WorkoutEntity, PersonalRecordEntity } from '../../domain/entities/workout.entity';
 import { WorkoutVolumeCalculator } from '../../domain/calculators/workout-volume.calculator';
 import { WorkoutTelemetryCalculator } from '../../domain/calculators/workout-telemetry.calculator';
@@ -31,6 +35,8 @@ export class GetWorkoutByIdUseCase {
   constructor(
     @Inject(WORKOUT_REPOSITORY_TOKEN)
     private readonly workoutRepository: IWorkoutRepository,
+    @Inject(USER_PROFILE_REPOSITORY)
+    private readonly profileRepository: IUserProfileRepository,
   ) {}
 
   async execute(userId: string, workoutId: string): Promise<WorkoutDetailResult> {
@@ -42,6 +48,10 @@ export class GetWorkoutByIdUseCase {
     if (workout.userId !== userId) {
       throw new ForbiddenException('Anda tidak memiliki akses ke sesi latihan ini.');
     }
+
+    // Fetch user profile weight for accurate calorie telemetry
+    const profile = await this.profileRepository.findByUserId(userId);
+    const userWeight = profile ? Number(profile.weightKg) : 70;
 
     // 1. Calculate telemetry
     const telemetry = WorkoutTelemetryCalculator.calculateSessionTelemetry({
@@ -55,7 +65,14 @@ export class GetWorkoutByIdUseCase {
           e.equipment === 'ROWING_MACHINE' ||
           e.equipment === 'ELLIPTICAL' ||
           e.primaryMuscle === 'CARDIO' ||
-          (e.exerciseName && e.exerciseName.toLowerCase().includes('treadmill')),
+          (e.exerciseName && (
+            e.exerciseName.toLowerCase().includes('treadmill') ||
+            e.exerciseName.toLowerCase().includes('cardio') ||
+            e.exerciseName.toLowerCase().includes('sepeda') ||
+            e.exerciseName.toLowerCase().includes('bike') ||
+            e.exerciseName.toLowerCase().includes('lari') ||
+            e.exerciseName.toLowerCase().includes('running')
+          )),
         );
 
         return {
@@ -71,9 +88,11 @@ export class GetWorkoutByIdUseCase {
             isCardio,
             inclinePct: s.inclinePct ?? undefined,
             speedKmh: s.speedKmh ?? undefined,
+            caloriesBurned: s.caloriesBurned ? Number(s.caloriesBurned) : undefined,
           })),
         };
       }),
+      userWeightKg: userWeight,
     });
 
     // 2. Aggregate sets, volume, cardio

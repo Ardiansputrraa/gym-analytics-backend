@@ -457,31 +457,38 @@ export class PrismaWorkoutRepository implements IWorkoutRepository {
       endDate = new Date(targetYear, 11, 31, 23, 59, 59, 999);
     }
 
-    const workouts = await this.prisma.workout.findMany({
-      where: {
-        userId,
-        status: WorkoutStatus.COMPLETED,
-        startedAt: {
-          gte: startDate,
-          lte: endDate,
+    const [workouts, userProfile] = await Promise.all([
+      this.prisma.workout.findMany({
+        where: {
+          userId,
+          status: WorkoutStatus.COMPLETED,
+          startedAt: {
+            gte: startDate,
+            lte: endDate,
+          },
+          isDeleted: false,
         },
-        isDeleted: false,
-      },
-      include: {
-        exercises: {
-          where: { isDeleted: false },
-          include: {
-            exercise: {
-              include: { primaryMuscleGroup: true },
-            },
-            sets: {
-              where: { isDeleted: false },
+        include: {
+          exercises: {
+            where: { isDeleted: false },
+            include: {
+              exercise: {
+                include: { primaryMuscleGroup: true },
+              },
+              sets: {
+                where: { isDeleted: false },
+              },
             },
           },
         },
-      },
-      orderBy: { startedAt: 'asc' },
-    });
+        orderBy: { startedAt: 'asc' },
+      }),
+      this.prisma.userProfile.findUnique({
+        where: { userId },
+      }),
+    ]);
+
+    const userWeight = userProfile?.weightKg ? Number(userProfile.weightKg) : 70;
 
     let totalVolumeKg = 0;
     let totalSets = 0;
@@ -504,7 +511,14 @@ export class PrismaWorkoutRepository implements IWorkoutRepository {
             e.exercise?.equipment === 'ROWING_MACHINE' ||
             e.exercise?.equipment === 'ELLIPTICAL' ||
             e.exercise?.primaryMuscleGroup?.name === 'CARDIO' ||
-            (e.exercise?.name && e.exercise.name.toLowerCase().includes('treadmill')),
+            (e.exercise?.name && (
+              e.exercise.name.toLowerCase().includes('treadmill') ||
+              e.exercise.name.toLowerCase().includes('cardio') ||
+              e.exercise.name.toLowerCase().includes('sepeda') ||
+              e.exercise.name.toLowerCase().includes('bike') ||
+              e.exercise.name.toLowerCase().includes('lari') ||
+              e.exercise.name.toLowerCase().includes('running')
+            )),
           );
 
           return {
@@ -520,9 +534,11 @@ export class PrismaWorkoutRepository implements IWorkoutRepository {
               isCardio,
               inclinePct: s.inclinePct ? Number(s.inclinePct) : undefined,
               speedKmh: s.speedKmh ? Number(s.speedKmh) : undefined,
+              caloriesBurned: s.caloriesBurned ? Number(s.caloriesBurned) : undefined,
             })),
           };
         }),
+        userWeightKg: userWeight,
       });
 
       totalDurationSeconds += telemetry.sessionDurationSeconds;
@@ -841,5 +857,52 @@ export class PrismaWorkoutRepository implements IWorkoutRepository {
     }
 
     return results;
+  }
+
+  async findCompletedByUserIdAndDateRange(
+    userId: string,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<WorkoutEntity[]> {
+    const raw = await this.prisma.workout.findMany({
+      where: {
+        userId,
+        status: WorkoutStatus.COMPLETED,
+        isDeleted: false,
+        OR: [
+          {
+            completedAt: {
+              gte: startDate,
+              lte: endDate,
+            },
+          },
+          {
+            startedAt: {
+              gte: startDate,
+              lte: endDate,
+            },
+          },
+        ],
+      },
+      include: {
+        routineTemplate: true,
+        exercises: {
+          where: { isDeleted: false },
+          include: {
+            exercise: {
+              include: { primaryMuscleGroup: true },
+            },
+            sets: {
+              where: { isDeleted: false },
+              orderBy: { orderIndex: 'asc' },
+            },
+          },
+          orderBy: { orderIndex: 'asc' },
+        },
+      },
+      orderBy: { completedAt: 'desc' },
+    });
+
+    return raw.map((w) => this.mapWorkoutToEntity(w));
   }
 }

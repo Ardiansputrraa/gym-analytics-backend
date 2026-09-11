@@ -60,7 +60,11 @@ describe('FinishWorkoutUseCase', () => {
       ),
     } as any;
 
-    useCase = new FinishWorkoutUseCase(mockRepository);
+    const mockProfileRepository = {
+      findByUserId: jest.fn().mockResolvedValue({ weightKg: 80 }),
+    } as any;
+
+    useCase = new FinishWorkoutUseCase(mockRepository, mockProfileRepository);
   });
 
   it('should complete workout, detect PRs, calculate summary metrics', async () => {
