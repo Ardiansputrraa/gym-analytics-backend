@@ -33,12 +33,13 @@ model User {
   updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt       DateTime? @map("deleted_at") @db.Timestamptz(6)
 
-  otpTokens       OtpToken[]
-  profile         UserProfile?
-  calorieTargets  DailyCalorieTarget[]
-  exercises       Exercise[]
-  workouts        Workout[]
-  personalRecords PersonalRecord[]
+  otpTokens        OtpToken[]
+  profile          UserProfile?
+  calorieTargets   DailyCalorieTarget[]
+  exercises        Exercise[]
+  workouts         Workout[]
+  personalRecords  PersonalRecord[]
+  bodyMeasurements BodyMeasurement[]
 
   @@map("users")
   @@schema("identity")
@@ -394,6 +395,48 @@ model PersonalRecord {
   @@index([userId, exerciseId, recordType, isDeleted], name: "idx_pr_user_exercise_type")
   @@map("personal_records")
   @@schema("analytics")
+}
+
+// ============================================================
+// BODY SCHEMA
+// ============================================================
+
+enum BodyCompositionStatus {
+  FAT_LOSS
+  MUSCLE_GAIN
+  MAINTENANCE
+  PR_COMPOSITION
+
+  @@schema("body")
+}
+
+model BodyMeasurement {
+  id                 String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId             String                 @map("user_id") @db.Uuid
+  measuredAt         DateTime               @map("measured_at") @db.Timestamptz(6)
+  receiptNumber      String?                @map("receipt_number") @db.VarChar(50)
+  weightKg           Decimal                @map("weight_kg") @db.Decimal(6, 3)
+  skeletalMuscleKg   Decimal?               @map("skeletal_muscle_kg") @db.Decimal(6, 2)
+  bodyFatKg          Decimal?               @map("body_fat_kg") @db.Decimal(6, 2)
+  bodyFatPct         Decimal?               @map("body_fat_pct") @db.Decimal(5, 2)
+  fatFreeMassKg      Decimal?               @map("fat_free_mass_kg") @db.Decimal(6, 2)
+  waterContentKg     Decimal?               @map("water_content_kg") @db.Decimal(6, 2)
+  proteinKg          Decimal?               @map("protein_kg") @db.Decimal(6, 2)
+  mineralKg          Decimal?               @map("mineral_kg") @db.Decimal(6, 2)
+  bmi                Decimal?               @db.Decimal(5, 2)
+  status             BodyCompositionStatus? @default(MAINTENANCE)
+  evaluation         String?                @db.VarChar(255)
+  notes              String?                @db.Text
+  isDeleted          Boolean                @default(false) @map("is_deleted")
+  deletedAt          DateTime?              @map("deleted_at") @db.Timestamptz(6)
+  createdAt          DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime               @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, measuredAt, isDeleted], name: "idx_bm_user_date")
+  @@map("body_measurements")
+  @@schema("body")
 }
 
 

@@ -28,7 +28,14 @@ export class StartWorkoutUseCase {
     // 2. Check if user already has an active session today
     const existingActive = await this.workoutRepository.findActiveByUserId(input.userId);
     if (existingActive) {
-      return existingActive; // Return existing active session idempotently
+      if (input.routineTemplateId || (input.name && input.name !== existingActive.name)) {
+        throw new BadRequestException({
+          message: `Tidak dapat memulai latihan baru karena masih ada sesi latihan aktif '${existingActive.name}'. Harap selesaikan atau batalkan sesi tersebut terlebih dahulu.`,
+          code: 'ACTIVE_WORKOUT_EXISTS',
+          activeWorkoutId: existingActive.id,
+        });
+      }
+      return existingActive; // Return existing active session idempotently for restore
     }
 
     let sessionName = input.name || 'Sesi Latihan Gym';
