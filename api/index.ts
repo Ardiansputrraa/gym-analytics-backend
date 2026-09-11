@@ -223,27 +223,66 @@ server.get(['/api/docs', '/api/docs/', '/docs', '/docs/'], (_req, res) => {
     .swagger-ui .opblock.opblock-delete { border-left: 4px solid #ef4444; }
     .swagger-ui .opblock.opblock-delete .opblock-summary-method { background: #ef4444; color: #ffffff; border-radius: 6px; font-weight: 700; }
 
-    /* Expanded Body */
-    .swagger-ui .opblock-body {
+    /* Expanded Body & Section Headers (Parameters, Request Body, Responses) */
+    .swagger-ui .opblock .opblock-body {
       background: #090d16 !important;
-      border-top: 1px solid #1e293b;
-      padding: 20px;
+      border-top: 1px solid rgba(51, 65, 85, 0.5) !important;
+      padding: 20px !important;
     }
+    .swagger-ui .opblock .opblock-section-header,
     .swagger-ui .opblock-section-header {
-      background: #131c2e;
-      border-radius: 8px;
-      padding: 8px 14px;
-      box-shadow: none;
+      background: #1e293b !important;
+      border: 1px solid #334155 !important;
+      border-radius: 8px !important;
+      padding: 10px 16px !important;
+      box-shadow: none !important;
+      margin: 16px 0 !important;
     }
+    .swagger-ui .opblock .opblock-section-header h4,
+    .swagger-ui .opblock .opblock-section-header label,
+    .swagger-ui .opblock .opblock-section-header span,
     .swagger-ui .opblock-section-header h4 {
-      color: #cbd5e1;
+      color: #f1f5f9 !important;
+      font-weight: 600 !important;
     }
+    .swagger-ui .opblock-description-wrapper p,
+    .swagger-ui .opblock-description-wrapper,
+    .swagger-ui .opblock-external-docs-wrapper {
+      color: #94a3b8 !important;
+      font-size: 14px !important;
+      line-height: 1.6 !important;
+      margin: 8px 0 16px 0 !important;
+    }
+    .swagger-ui .opblock-title_normal {
+      color: #cbd5e1 !important;
+    }
+    .swagger-ui div.parameters-container em,
+    .swagger-ui .parameter__empty {
+      color: #64748b !important;
+    }
+
+    /* Tabs & Content Types */
     .swagger-ui .tab li button.tablinks {
-      color: #94a3b8;
+      color: #94a3b8 !important;
+      font-weight: 500 !important;
     }
+    .swagger-ui .tab li.active button.tablinks,
     .swagger-ui .tab li button.tablinks.active {
-      color: #f8fafc;
-      font-weight: 700;
+      color: #38bdf8 !important;
+      font-weight: 700 !important;
+      border-bottom: 2px solid #38bdf8 !important;
+    }
+    .swagger-ui .body-param-options select,
+    .swagger-ui .content-type-wrapper select,
+    .swagger-ui .response-control-media-type select {
+      background: #0f172a !important;
+      border: 1px solid #334155 !important;
+      color: #f8fafc !important;
+      border-radius: 6px !important;
+      padding: 6px 10px !important;
+    }
+    .swagger-ui label.content-type {
+      color: #94a3b8 !important;
     }
 
     /* Parameters & Tables */
