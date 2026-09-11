@@ -43,12 +43,20 @@ async function bootstrap() {
 }
 
 // Custom Swagger Routes (Zero filesystem dependency, 100% Serverless-safe)
-server.get(['/api/docs-json', '/api/docs/swagger.json'], (_req, res) => {
-  res.setHeader('Content-Type', 'application/json');
-  res.json(swaggerDocument);
-});
+server.get(
+  [
+    '/api/docs-json',
+    '/docs-json',
+    '/api/docs/swagger.json',
+    '/docs/swagger.json',
+  ],
+  (_req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.json(swaggerDocument);
+  },
+);
 
-server.get(['/api/docs', '/api/docs/'], (_req, res) => {
+server.get(['/api/docs', '/api/docs/', '/docs', '/docs/'], (_req, res) => {
   res.setHeader('Content-Type', 'text/html');
   res.send(`<!DOCTYPE html>
 <html lang="en">
