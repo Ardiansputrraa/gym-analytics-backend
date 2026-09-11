@@ -10,15 +10,18 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 const server: Express = express();
 let isAppReady = false;
 
-// Redirect Swagger UI static assets to CDN for Vercel Serverless runtime
-server.get('/api/docs/swagger-ui.css', (_req, res) => {
-  res.redirect('https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.18.2/swagger-ui.min.css');
-});
-server.get('/api/docs/swagger-ui-bundle.js', (_req, res) => {
-  res.redirect('https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.18.2/swagger-ui-bundle.min.js');
-});
-server.get('/api/docs/swagger-ui-standalone-preset.js', (_req, res) => {
-  res.redirect('https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.18.2/swagger-ui-standalone-preset.min.js');
+// Intercept and redirect Swagger UI static assets to CDN for any URL structure
+server.use((req, res, next) => {
+  if (req.url.includes('swagger-ui.css')) {
+    return res.redirect(302, 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.18.2/swagger-ui.min.css');
+  }
+  if (req.url.includes('swagger-ui-bundle.js')) {
+    return res.redirect(302, 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.18.2/swagger-ui-bundle.min.js');
+  }
+  if (req.url.includes('swagger-ui-standalone-preset.js')) {
+    return res.redirect(302, 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.18.2/swagger-ui-standalone-preset.min.js');
+  }
+  next();
 });
 
 async function bootstrap() {
