@@ -33,9 +33,13 @@ model User {
   updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt       DateTime? @map("deleted_at") @db.Timestamptz(6)
 
-  otpTokens      OtpToken[]
-  profile        UserProfile?
-  calorieTargets DailyCalorieTarget[]
+  otpTokens        OtpToken[]
+  profile          UserProfile?
+  calorieTargets   DailyCalorieTarget[]
+  exercises        Exercise[]
+  workouts         Workout[]
+  personalRecords  PersonalRecord[]
+  bodyMeasurements BodyMeasurement[]
 
   @@map("users")
   @@schema("identity")
@@ -160,3 +164,279 @@ model DailyCalorieTarget {
   @@map("daily_calorie_targets")
   @@schema("calorie")
 }
+
+// ============================================================
+// EXERCISE SCHEMA
+// ============================================================
+
+enum ExerciseType {
+  STRENGTH
+  CARDIO_TREADMILL
+  CARDIO_GENERIC
+  BODYWEIGHT
+
+  @@schema("exercise")
+}
+
+enum EquipmentCategory {
+  BARBELL
+  DUMBBELL
+  CABLE
+  MACHINE
+  SMITH
+  BODYWEIGHT
+  TREADMILL
+  STATIONARY_BIKE
+  STAIR_MASTER
+  ROWING_MACHINE
+  ELLIPTICAL
+  OTHER
+
+  @@schema("exercise")
+}
+
+model MuscleGroup {
+  id          String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String     @unique @db.VarChar(100)
+  displayName String     @map("display_name") @db.VarChar(100)
+  description String?    @db.Text
+  orderIndex  Int        @default(0) @map("order_index")
+  isDeleted   Boolean    @default(false) @map("is_deleted")
+  deletedAt   DateTime?  @map("deleted_at") @db.Timestamptz(6)
+  createdAt   DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  exercises Exercise[]
+
+  @@map("muscle_groups")
+  @@schema("exercise")
+}
+
+model Exercise {
+  id                  String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId              String?           @map("user_id") @db.Uuid
+  name                String            @db.VarChar(255)
+  description         String?           @db.Text
+  equipment           EquipmentCategory @default(BARBELL)
+  exerciseType        ExerciseType      @default(STRENGTH) @map("exercise_type")
+  primaryMuscleGroupId String           @map("primary_muscle_group_id") @db.Uuid
+  isCustom            Boolean           @default(false) @map("is_custom")
+  isActive            Boolean           @default(true) @map("is_active")
+  isDeleted           Boolean           @default(false) @map("is_deleted")
+  deletedAt           DateTime?         @map("deleted_at") @db.Timestamptz(6)
+  createdAt           DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime          @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user                     User?                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  primaryMuscleGroup       MuscleGroup               @relation(fields: [primaryMuscleGroupId], references: [id])
+  workoutExercises         WorkoutExercise[]
+  routineTemplateExercises RoutineTemplateExercise[]
+  personalRecords          PersonalRecord[]
+
+  @@index([userId, isDeleted], name: "idx_exercises_user_deleted")
+  @@index([primaryMuscleGroupId, equipment, isDeleted], name: "idx_exercises_lookup")
+  @@map("exercises")
+  @@schema("exercise")
+}
+
+// ============================================================
+// WORKOUT SCHEMA
+// ============================================================
+
+enum WorkoutStatus {
+  PLANNED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+
+  @@schema("workout")
+}
+
+model RoutineTemplate {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String    @db.VarChar(255)
+  description String?   @db.Text
+  category    String    @default("STRENGTH") @db.VarChar(100)
+  isActive    Boolean   @default(true) @map("is_active")
+  isDeleted   Boolean   @default(false) @map("is_deleted")
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz(6)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  exercises RoutineTemplateExercise[]
+  workouts  Workout[]
+
+  @@map("routine_templates")
+  @@schema("workout")
+}
+
+model RoutineTemplateExercise {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  routineTemplateId String    @map("routine_template_id") @db.Uuid
+  exerciseId        String    @map("exercise_id") @db.Uuid
+  orderIndex        Int       @default(0) @map("order_index")
+  targetSets        Int       @default(3) @map("target_sets")
+  targetReps        Int?      @map("target_reps")
+  targetRestSeconds Int       @default(90) @map("target_rest_seconds")
+  isDeleted         Boolean   @default(false) @map("is_deleted")
+  deletedAt         DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  routineTemplate RoutineTemplate @relation(fields: [routineTemplateId], references: [id], onDelete: Cascade)
+  exercise        Exercise        @relation(fields: [exerciseId], references: [id])
+
+  @@index([routineTemplateId, orderIndex], name: "idx_rte_template_order")
+  @@map("routine_template_exercises")
+  @@schema("workout")
+}
+
+model Workout {
+  id                String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId            String        @map("user_id") @db.Uuid
+  routineTemplateId String?       @map("routine_template_id") @db.Uuid
+  name              String        @default("Sesi Latihan Gym") @db.VarChar(255)
+  status            WorkoutStatus @default(PLANNED)
+  startedAt         DateTime?     @map("started_at") @db.Timestamptz(6)
+  completedAt       DateTime?     @map("completed_at") @db.Timestamptz(6)
+  notes             String?       @db.Text
+  isDeleted         Boolean       @default(false) @map("is_deleted")
+  deletedAt         DateTime?     @map("deleted_at") @db.Timestamptz(6)
+  createdAt         DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  routineTemplate RoutineTemplate?  @relation(fields: [routineTemplateId], references: [id])
+  exercises       WorkoutExercise[]
+
+  @@index([userId, createdAt, status, isDeleted], name: "idx_workouts_user_date_status")
+  @@map("workouts")
+  @@schema("workout")
+}
+
+model WorkoutExercise {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workoutId   String    @map("workout_id") @db.Uuid
+  exerciseId  String    @map("exercise_id") @db.Uuid
+  orderIndex  Int       @map("order_index") @db.SmallInt
+  startedAt   DateTime? @map("started_at") @db.Timestamptz(6)
+  completedAt DateTime? @map("completed_at") @db.Timestamptz(6)
+  notes       String?   @db.Text
+  isDeleted   Boolean   @default(false) @map("is_deleted")
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz(6)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  workout  Workout      @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+  exercise Exercise     @relation(fields: [exerciseId], references: [id])
+  sets     WorkoutSet[]
+
+  @@index([workoutId, orderIndex, isDeleted], name: "idx_we_workout_order")
+  @@map("workout_exercises")
+  @@schema("workout")
+}
+
+model WorkoutSet {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workoutExerciseId String    @map("workout_exercise_id") @db.Uuid
+  orderIndex        Int       @map("order_index") @db.SmallInt
+  weightKg          Decimal   @default(0) @map("weight_kg") @db.Decimal(6, 3)
+  reps              Int       @default(0) @db.SmallInt
+  durationSeconds   Int       @default(0) @map("duration_seconds")
+  restSeconds       Int       @default(0) @map("rest_seconds")
+  inclinePct        Decimal?  @map("incline_pct") @db.Decimal(4, 1)
+  speedKmh          Decimal?  @map("speed_kmh") @db.Decimal(4, 1)
+  distanceKm        Decimal?  @map("distance_km") @db.Decimal(6, 3)
+  caloriesBurned    Int?      @map("calories_burned")
+  paceMinPerKm      String?   @map("pace_min_per_km") @db.VarChar(10)
+  isCompleted       Boolean   @default(false) @map("is_completed")
+  completedAt       DateTime? @map("completed_at") @db.Timestamptz(6)
+  rpe               Decimal?  @db.Decimal(3, 1)
+  isDeleted         Boolean   @default(false) @map("is_deleted")
+  deletedAt         DateTime? @map("deleted_at") @db.Timestamptz(6)
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  workoutExercise WorkoutExercise  @relation(fields: [workoutExerciseId], references: [id], onDelete: Cascade)
+  personalRecords PersonalRecord[]
+
+  @@index([workoutExerciseId, orderIndex, isDeleted], name: "idx_ws_exercise_order")
+  @@map("workout_sets")
+  @@schema("workout")
+}
+
+// ============================================================
+// ANALYTICS SCHEMA
+// ============================================================
+
+enum RecordType {
+  MAX_WEIGHT
+  MAX_REPS
+  MAX_VOLUME
+
+  @@schema("analytics")
+}
+
+model PersonalRecord {
+  id           String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String     @map("user_id") @db.Uuid
+  exerciseId   String     @map("exercise_id") @db.Uuid
+  workoutSetId String?    @map("workout_set_id") @db.Uuid
+  recordType   RecordType @map("record_type")
+  value        Decimal    @db.Decimal(8, 3)
+  achievedAt   DateTime   @default(now()) @map("achieved_at") @db.Timestamptz(6)
+  isDeleted    Boolean    @default(false) @map("is_deleted")
+  deletedAt    DateTime?  @map("deleted_at") @db.Timestamptz(6)
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exercise   Exercise    @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  workoutSet WorkoutSet? @relation(fields: [workoutSetId], references: [id])
+
+  @@index([userId, exerciseId, recordType, isDeleted], name: "idx_pr_user_exercise_type")
+  @@map("personal_records")
+  @@schema("analytics")
+}
+
+// ============================================================
+// BODY SCHEMA
+// ============================================================
+
+enum BodyCompositionStatus {
+  FAT_LOSS
+  MUSCLE_GAIN
+  MAINTENANCE
+  PR_COMPOSITION
+
+  @@schema("body")
+}
+
+model BodyMeasurement {
+  id                 String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId             String                 @map("user_id") @db.Uuid
+  measuredAt         DateTime               @map("measured_at") @db.Timestamptz(6)
+  receiptNumber      String?                @map("receipt_number") @db.VarChar(50)
+  weightKg           Decimal                @map("weight_kg") @db.Decimal(6, 3)
+  skeletalMuscleKg   Decimal?               @map("skeletal_muscle_kg") @db.Decimal(6, 2)
+  bodyFatKg          Decimal?               @map("body_fat_kg") @db.Decimal(6, 2)
+  bodyFatPct         Decimal?               @map("body_fat_pct") @db.Decimal(5, 2)
+  fatFreeMassKg      Decimal?               @map("fat_free_mass_kg") @db.Decimal(6, 2)
+  waterContentKg     Decimal?               @map("water_content_kg") @db.Decimal(6, 2)
+  proteinKg          Decimal?               @map("protein_kg") @db.Decimal(6, 2)
+  mineralKg          Decimal?               @map("mineral_kg") @db.Decimal(6, 2)
+  bmi                Decimal?               @db.Decimal(5, 2)
+  status             BodyCompositionStatus? @default(MAINTENANCE)
+  evaluation         String?                @db.VarChar(255)
+  notes              String?                @db.Text
+  isDeleted          Boolean                @default(false) @map("is_deleted")
+  deletedAt          DateTime?              @map("deleted_at") @db.Timestamptz(6)
+  createdAt          DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime               @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, measuredAt, isDeleted], name: "idx_bm_user_date")
+  @@map("body_measurements")
+  @@schema("body")
+}
+
+

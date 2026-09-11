@@ -11,9 +11,14 @@ import {
   USER_REPOSITORY,
   type IUserRepository,
 } from '../../domain/repositories/user.repository.interface';
+import {
+  BODY_MEASUREMENT_REPOSITORY_TOKEN,
+  type IBodyMeasurementRepository,
+} from '../../domain/repositories/body-measurement.repository.interface';
 import { calculateBmr } from '../../domain/calculators/bmr.calculator';
 import { calculateTdee } from '../../domain/calculators/tdee.calculator';
 import { calculateCalorieTarget } from '../../domain/calculators/calorie-target.calculator';
+import { BodyCompositionCalculator } from '../../domain/calculators/body-composition.calculator';
 import { ActivityLevel } from '../../domain/enums/activity-level.enum';
 import { DietPace } from '../../domain/enums/diet-pace.enum';
 import type {
@@ -30,6 +35,8 @@ export class UpsertProfileUseCase {
     private readonly profileRepository: IUserProfileRepository,
     @Inject(DAILY_CALORIE_TARGET_REPOSITORY)
     private readonly calorieTargetRepository: IDailyCalorieTargetRepository,
+    @Inject(BODY_MEASUREMENT_REPOSITORY_TOKEN)
+    private readonly bodyMeasurementRepository: IBodyMeasurementRepository,
   ) {}
 
   async execute(
@@ -126,6 +133,57 @@ export class UpsertProfileUseCase {
       proteinGrams: targetResult.proteinGrams,
       carbsGrams: targetResult.carbsGrams,
       fatGrams: targetResult.fatGrams,
+    });
+
+    // 4. Auto-sync and record BodyMeasurement in body composition history
+    const derivatives = BodyCompositionCalculator.calculateDerivatives(
+      dto.weightKg,
+      dto.heightCm,
+      computedBodyFatKg,
+      computedBodyFatPct,
+      dto.fatFreeMassKg,
+    );
+
+    const previous = await this.bodyMeasurementRepository.findPrevious(
+      userId,
+      today,
+    );
+
+    const progress = BodyCompositionCalculator.evaluateProgress(
+      {
+        weightKg: dto.weightKg,
+        skeletalMuscleKg: dto.skeletalMuscleKg,
+        bodyFatKg: derivatives.bodyFatKg,
+        bodyFatPct: derivatives.bodyFatPct,
+        waterContentKg: dto.waterContentKg,
+      },
+      previous
+        ? {
+            weightKg: previous.weightKg,
+            skeletalMuscleKg: previous.skeletalMuscleKg,
+            bodyFatKg: previous.bodyFatKg,
+            bodyFatPct: previous.bodyFatPct,
+            waterContentKg: previous.waterContentKg,
+          }
+        : null,
+    );
+
+    await this.bodyMeasurementRepository.create({
+      userId,
+      measuredAt: today,
+      receiptNumber: undefined,
+      weightKg: dto.weightKg,
+      skeletalMuscleKg: dto.skeletalMuscleKg,
+      bodyFatKg: derivatives.bodyFatKg,
+      bodyFatPct: derivatives.bodyFatPct,
+      fatFreeMassKg: derivatives.fatFreeMassKg,
+      waterContentKg: dto.waterContentKg,
+      proteinKg: dto.proteinKg,
+      mineralKg: dto.mineralKg,
+      bmi: derivatives.bmi,
+      status: progress.status,
+      evaluation: progress.evaluation,
+      notes: 'Disinkronkan otomatis dari pembaruan profil',
     });
 
     const needsUpdate = profile.isCheckInDue(today);
