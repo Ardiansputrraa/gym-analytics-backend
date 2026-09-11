@@ -66,9 +66,16 @@ export class WorkoutTelemetryCalculator {
       if (Array.isArray(ex.sets)) {
         for (const s of ex.sets) {
           if (s.isCompleted !== false) {
-            const setDuration = Math.max(0, Number(s.durationSeconds) || 0);
+            let setDuration = Math.max(0, Number(s.durationSeconds) || 0);
             const setRest = Math.max(0, Number(s.restSeconds) || 0);
             const isSetCardio = isExerciseCardio || !!s.isCardio;
+
+            // PRD Section 19 & 34: If resistance set duration is 0, estimate active TUT from reps
+            // (Standard lifting cadence: ~3.5s per repetition, min 15s)
+            if (!isSetCardio && setDuration === 0) {
+              const reps = Math.max(1, Number(s.reps) || 10);
+              setDuration = Math.max(15, Math.round(reps * 3.5));
+            }
 
             activeDurationSeconds += setDuration;
             restDurationSeconds += setRest;

@@ -277,7 +277,7 @@ export class PrismaWorkoutRepository implements IWorkoutRepository {
         weightKg: new Prisma.Decimal(0),
         reps: 0,
         durationSeconds: 0,
-        restSeconds: 90,
+        restSeconds: 45,
         isCompleted: false,
       },
     });
@@ -432,33 +432,48 @@ export class PrismaWorkoutRepository implements IWorkoutRepository {
   async getAnalytics(
     userId: string,
     timeframe: WorkoutTimeframe,
+    year?: number,
+    month?: number,
   ): Promise<WorkoutTelemetryAggregates> {
     const now = new Date();
     let startDate = new Date();
+    let endDate = new Date();
 
     if (timeframe === WorkoutTimeframe.TODAY) {
       startDate.setHours(0, 0, 0, 0);
+      endDate.setHours(23, 59, 59, 999);
     } else if (timeframe === WorkoutTimeframe.WEEK) {
       startDate.setDate(now.getDate() - 6);
       startDate.setHours(0, 0, 0, 0);
+      endDate.setHours(23, 59, 59, 999);
     } else if (timeframe === WorkoutTimeframe.MONTH) {
-      startDate.setDate(now.getDate() - 29);
-      startDate.setHours(0, 0, 0, 0);
+      const targetYear = year || now.getFullYear();
+      const targetMonth = month !== undefined ? month : now.getMonth() + 1;
+      startDate = new Date(targetYear, targetMonth - 1, 1, 0, 0, 0, 0);
+      endDate = new Date(targetYear, targetMonth, 0, 23, 59, 59, 999);
     } else if (timeframe === WorkoutTimeframe.YEAR) {
-      startDate = new Date(now.getFullYear(), 0, 1);
+      const targetYear = year || now.getFullYear();
+      startDate = new Date(targetYear, 0, 1, 0, 0, 0, 0);
+      endDate = new Date(targetYear, 11, 31, 23, 59, 59, 999);
     }
 
     const workouts = await this.prisma.workout.findMany({
       where: {
         userId,
         status: WorkoutStatus.COMPLETED,
-        startedAt: { gte: startDate },
+        startedAt: {
+          gte: startDate,
+          lte: endDate,
+        },
         isDeleted: false,
       },
       include: {
         exercises: {
           where: { isDeleted: false },
           include: {
+            exercise: {
+              include: { primaryMuscleGroup: true },
+            },
             sets: {
               where: { isDeleted: false },
             },
@@ -481,15 +496,33 @@ export class PrismaWorkoutRepository implements IWorkoutRepository {
       const telemetry = WorkoutTelemetryCalculator.calculateSessionTelemetry({
         startedAt: w.startedAt || w.createdAt,
         completedAt: w.completedAt,
-        exercises: w.exercises.map((e) => ({
-          startedAt: e.startedAt,
-          completedAt: e.completedAt,
-          sets: e.sets.map((s) => ({
-            durationSeconds: s.durationSeconds,
-            restSeconds: s.restSeconds,
-            isCompleted: s.isCompleted,
-          })),
-        })),
+        exercises: w.exercises.map((e) => {
+          const isCardio = Boolean(
+            e.exercise?.equipment === 'TREADMILL' ||
+            e.exercise?.equipment === 'STATIONARY_BIKE' ||
+            e.exercise?.equipment === 'STAIR_MASTER' ||
+            e.exercise?.equipment === 'ROWING_MACHINE' ||
+            e.exercise?.equipment === 'ELLIPTICAL' ||
+            e.exercise?.primaryMuscleGroup?.name === 'CARDIO' ||
+            (e.exercise?.name && e.exercise.name.toLowerCase().includes('treadmill')),
+          );
+
+          return {
+            startedAt: e.startedAt,
+            completedAt: e.completedAt,
+            isCardio,
+            sets: e.sets.map((s) => ({
+              durationSeconds: s.durationSeconds,
+              restSeconds: s.restSeconds,
+              weightKg: Number(s.weightKg),
+              reps: s.reps,
+              isCompleted: s.isCompleted,
+              isCardio,
+              inclinePct: s.inclinePct ? Number(s.inclinePct) : undefined,
+              speedKmh: s.speedKmh ? Number(s.speedKmh) : undefined,
+            })),
+          };
+        }),
       });
 
       totalDurationSeconds += telemetry.sessionDurationSeconds;
@@ -518,41 +551,36 @@ export class PrismaWorkoutRepository implements IWorkoutRepository {
     const newPrCount = await this.prisma.personalRecord.count({
       where: {
         userId,
-        achievedAt: { gte: startDate },
+        achievedAt: {
+          gte: startDate,
+          lte: endDate,
+        },
         isDeleted: false,
       },
     });
 
     // Build chart data
     const chartData: WorkoutTelemetryAggregates['chartData'] = [];
-    const dateMap = new Map<string, { volume: number; active: number; rest: number; total: number }>();
-
-    // Generate date slots
-    const daysCount =
-      timeframe === WorkoutTimeframe.TODAY
-        ? 1
-        : timeframe === WorkoutTimeframe.WEEK
-        ? 7
-        : timeframe === WorkoutTimeframe.MONTH
-        ? 30
-        : 12; // Months for year
 
     if (timeframe === WorkoutTimeframe.YEAR) {
       const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+      const monthMap = new Map<string, { volume: number; active: number; rest: number; total: number }>();
+
       for (let m = 0; m < 12; m++) {
-        dateMap.set(monthNames[m], { volume: 0, active: 0, rest: 0, total: 0 });
+        monthMap.set(monthNames[m], { volume: 0, active: 0, rest: 0, total: 0 });
       }
 
       for (const w of workouts) {
         const mIdx = new Date(w.startedAt || w.createdAt).getMonth();
         const mKey = monthNames[mIdx];
-        const entry = dateMap.get(mKey);
+        const entry = monthMap.get(mKey);
         if (entry) {
           for (const e of w.exercises) {
             for (const s of e.sets) {
               if (s.isCompleted) {
+                const sDur = s.durationSeconds || Math.max(15, Math.round((s.reps || 10) * 3.5));
                 entry.volume += WorkoutVolumeCalculator.calculateSetVolume(Number(s.weightKg), s.reps);
-                entry.active += Math.round(s.durationSeconds / 60);
+                entry.active += Math.round(sDur / 60) || 1;
                 entry.rest += Math.round(s.restSeconds / 60);
               }
             }
@@ -564,7 +592,7 @@ export class PrismaWorkoutRepository implements IWorkoutRepository {
         }
       }
 
-      for (const [label, data] of dateMap.entries()) {
+      for (const [label, data] of monthMap.entries()) {
         chartData.push({
           date: label,
           label,
@@ -574,14 +602,56 @@ export class PrismaWorkoutRepository implements IWorkoutRepository {
           totalMinutes: data.total,
         });
       }
+    } else if (timeframe === WorkoutTimeframe.MONTH) {
+      const totalDaysInMonth = endDate.getDate();
+      const weekSlots = [
+        { label: 'Mgg 1 (1-7)', maxDay: 7, volume: 0, active: 0, rest: 0, total: 0 },
+        { label: 'Mgg 2 (8-14)', maxDay: 14, volume: 0, active: 0, rest: 0, total: 0 },
+        { label: 'Mgg 3 (15-21)', maxDay: 21, volume: 0, active: 0, rest: 0, total: 0 },
+        { label: `Mgg 4 (22-${totalDaysInMonth})`, maxDay: 31, volume: 0, active: 0, rest: 0, total: 0 },
+      ];
+
+      for (const w of workouts) {
+        const dayOfMonth = new Date(w.startedAt || w.createdAt).getDate();
+        const slot =
+          weekSlots.find((s) => dayOfMonth <= s.maxDay) || weekSlots[weekSlots.length - 1];
+
+        for (const e of w.exercises) {
+          for (const s of e.sets) {
+            if (s.isCompleted) {
+              const sDur = s.durationSeconds || Math.max(15, Math.round((s.reps || 10) * 3.5));
+              slot.volume += WorkoutVolumeCalculator.calculateSetVolume(Number(s.weightKg), s.reps);
+              slot.active += Math.round(sDur / 60) || 1;
+              slot.rest += Math.round(s.restSeconds / 60);
+            }
+          }
+        }
+        if (w.completedAt && w.startedAt) {
+          slot.total += Math.round(
+            (new Date(w.completedAt).getTime() - new Date(w.startedAt).getTime()) / 60000,
+          );
+        }
+      }
+
+      for (const slot of weekSlots) {
+        chartData.push({
+          date: slot.label,
+          label: slot.label,
+          volumeKg: Math.round(slot.volume),
+          activeMinutes: slot.active,
+          restMinutes: slot.rest,
+          totalMinutes: slot.total,
+        });
+      }
     } else {
+      // TODAY (1 day) or WEEK (7 days)
+      const daysCount = timeframe === WorkoutTimeframe.TODAY ? 1 : 7;
       for (let i = daysCount - 1; i >= 0; i--) {
         const d = new Date(now);
         d.setDate(d.getDate() - i);
         const iso = d.toISOString().split('T')[0];
         const dayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
         const label = `${dayNames[d.getDay()]} (${d.getDate().toString().padStart(2, '0')})`;
-        dateMap.set(iso, { volume: 0, active: 0, rest: 0, total: 0 });
         chartData.push({
           date: iso,
           label,
@@ -599,8 +669,9 @@ export class PrismaWorkoutRepository implements IWorkoutRepository {
           for (const e of w.exercises) {
             for (const s of e.sets) {
               if (s.isCompleted) {
+                const sDur = s.durationSeconds || Math.max(15, Math.round((s.reps || 10) * 3.5));
                 targetPoint.volumeKg += WorkoutVolumeCalculator.calculateSetVolume(Number(s.weightKg), s.reps);
-                targetPoint.activeMinutes += Math.round(s.durationSeconds / 60);
+                targetPoint.activeMinutes += Math.round(sDur / 60) || 1;
                 targetPoint.restMinutes += Math.round(s.restSeconds / 60);
               }
             }
@@ -617,11 +688,11 @@ export class PrismaWorkoutRepository implements IWorkoutRepository {
     const activeRatioPct =
       totalDurationSeconds > 0
         ? Math.round((totalActiveSeconds / totalDurationSeconds) * 1000) / 10
-        : 60; // baseline if empty
+        : 0;
 
     return {
       totalVolumeKg: Math.round(totalVolumeKg),
-      volumeDeltaPct: 8.4,
+      volumeDeltaPct: workouts.length > 0 ? 0 : 0,
       totalSessions: workouts.length,
       totalSets,
       totalDurationMinutes: Math.round(totalDurationSeconds / 60),

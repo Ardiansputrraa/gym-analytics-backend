@@ -7,6 +7,7 @@ import { WorkoutSetsUseCase } from './workout-sets.use-case';
 import { GetWorkoutHistoryUseCase } from './get-workout-history.use-case';
 import { GetWorkoutAnalyticsUseCase } from './get-workout-analytics.use-case';
 import { GetRoutineTemplatesUseCase } from './get-routine-templates.use-case';
+import { GetWorkoutByIdUseCase } from './get-workout-by-id.use-case';
 
 export * from './start-workout.use-case';
 export * from './get-active-workout.use-case';
@@ -17,6 +18,7 @@ export * from './workout-sets.use-case';
 export * from './get-workout-history.use-case';
 export * from './get-workout-analytics.use-case';
 export * from './get-routine-templates.use-case';
+export * from './get-workout-by-id.use-case';
 
 export const WORKOUT_USE_CASES = [
   StartWorkoutUseCase,
@@ -28,4 +30,6 @@ export const WORKOUT_USE_CASES = [
   GetWorkoutHistoryUseCase,
   GetWorkoutAnalyticsUseCase,
   GetRoutineTemplatesUseCase,
+  GetWorkoutByIdUseCase,
 ];
+

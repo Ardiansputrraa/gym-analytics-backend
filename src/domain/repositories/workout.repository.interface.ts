@@ -103,7 +103,7 @@ export interface IWorkoutRepository {
   removeSet(setId: string): Promise<boolean>;
 
   findHistory(filter: WorkoutHistoryFilter): Promise<PaginatedWorkouts>;
-  getAnalytics(userId: string, timeframe: WorkoutTimeframe): Promise<WorkoutTelemetryAggregates>;
+  getAnalytics(userId: string, timeframe: WorkoutTimeframe, year?: number, month?: number): Promise<WorkoutTelemetryAggregates>;
   
   // Routine Templates
   findRoutineTemplates(): Promise<RoutineTemplateEntity[]>;

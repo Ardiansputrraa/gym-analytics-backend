@@ -16,7 +16,10 @@ export class GetWorkoutAnalyticsUseCase {
   async execute(
     userId: string,
     timeframe: WorkoutTimeframe = WorkoutTimeframe.WEEK,
+    year?: number,
+    month?: number,
   ): Promise<WorkoutTelemetryAggregates> {
-    return this.workoutRepository.getAnalytics(userId, timeframe);
+    return this.workoutRepository.getAnalytics(userId, timeframe, year, month);
   }
 }
+

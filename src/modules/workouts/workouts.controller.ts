@@ -30,6 +30,7 @@ import {
   GetWorkoutHistoryUseCase,
   GetWorkoutAnalyticsUseCase,
   GetRoutineTemplatesUseCase,
+  GetWorkoutByIdUseCase,
 } from '../../application/workouts';
 import {
   StartWorkoutDto,
@@ -57,6 +58,7 @@ export class WorkoutsController {
     private readonly getWorkoutHistoryUseCase: GetWorkoutHistoryUseCase,
     private readonly getWorkoutAnalyticsUseCase: GetWorkoutAnalyticsUseCase,
     private readonly getRoutineTemplatesUseCase: GetRoutineTemplatesUseCase,
+    private readonly getWorkoutByIdUseCase: GetWorkoutByIdUseCase,
   ) {}
 
   @Post('start')
@@ -148,12 +150,32 @@ export class WorkoutsController {
     const analytics = await this.getWorkoutAnalyticsUseCase.execute(
       user.sub,
       query.timeframe as WorkoutTimeframe,
+      query.year,
+      query.month,
     );
 
     return {
       success: true,
       message: 'Analitik telemetri latihan berhasil dimuat.',
       data: analytics,
+    };
+  }
+
+  @Get(':id')
+  @ApiOperation({
+    summary: 'Get full workout session detail by ID',
+    description: 'Returns workout session detail with full exercise sets breakdown, telemetry summary, and PRs.',
+  })
+  @ApiParam({ name: 'id', description: 'Workout UUID' })
+  async getWorkoutById(
+    @CurrentUser() user: JwtPayload,
+    @Param('id') workoutId: string,
+  ) {
+    const result = await this.getWorkoutByIdUseCase.execute(user.sub, workoutId);
+    return {
+      success: true,
+      message: 'Detail sesi latihan berhasil dimuat.',
+      data: result,
     };
   }
 

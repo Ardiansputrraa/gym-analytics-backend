@@ -13,7 +13,7 @@ export enum RecordType {
 
 export enum WorkoutTimeframe {
   TODAY = 'TODAY',
-  WEEK = '7_DAYS',
+  WEEK = 'WEEK',
   MONTH = 'MONTH',
   YEAR = 'YEAR',
 }

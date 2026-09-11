@@ -20,7 +20,7 @@ export const CreateWorkoutSetSchema = z.object({
   weightKg: z.coerce.number().min(0, 'Beban tidak boleh negatif').default(0),
   reps: z.coerce.number().int().min(0, 'Repetisi tidak boleh negatif').default(0),
   durationSeconds: z.coerce.number().int().min(0).default(0),
-  restSeconds: z.coerce.number().int().min(0).default(90),
+  restSeconds: z.coerce.number().int().min(0).default(45),
   inclinePct: z.coerce.number().min(0).max(100).optional().nullable(),
   speedKmh: z.coerce.number().min(0).max(50).optional().nullable(),
   distanceKm: z.coerce.number().min(0).optional().nullable(),
@@ -61,7 +61,10 @@ export const GetWorkoutHistoryQuerySchema = z.object({
 export class GetWorkoutHistoryQueryDto extends createZodDto(GetWorkoutHistoryQuerySchema) {}
 
 export const GetWorkoutAnalyticsQuerySchema = z.object({
-  timeframe: z.enum(['TODAY', '7_DAYS', 'MONTH', 'YEAR']).default('7_DAYS'),
+  timeframe: z.enum(['TODAY', 'WEEK', 'MONTH', 'YEAR']).default('WEEK'),
+  year: z.coerce.number().int().min(2000).max(2100).optional(),
+  month: z.coerce.number().int().min(1).max(12).optional(),
 });
 
 export class GetWorkoutAnalyticsQueryDto extends createZodDto(GetWorkoutAnalyticsQuerySchema) {}
+
