@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import express, { Express } from 'express';
@@ -10,6 +11,7 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 const server: Express = express();
 let isAppReady = false;
 let swaggerDocument: any = null;
+let bootstrapPromise: Promise<void> | null = null;
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, new ExpressAdapter(server));
@@ -96,7 +98,21 @@ server.get(['/api/docs', '/api/docs/', '/docs', '/docs/'], (_req, res) => {
 
 export default async function handler(req: any, res: any) {
   if (!isAppReady) {
-    await bootstrap();
+    if (!bootstrapPromise) {
+      bootstrapPromise = bootstrap();
+    }
+    try {
+      await bootstrapPromise;
+    } catch (err: any) {
+      bootstrapPromise = null;
+      console.error('NestJS Bootstrap Error:', err);
+      return res.status(500).json({
+        success: false,
+        error: 'Bootstrap Error',
+        message: err?.message || String(err),
+        stack: process.env.NODE_ENV === 'development' ? err?.stack : undefined,
+      });
+    }
   }
   return server(req, res);
 }
