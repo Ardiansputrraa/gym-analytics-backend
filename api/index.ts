@@ -137,6 +137,47 @@ server.get(['/api/docs', '/api/docs/', '/docs', '/docs/'], (_req, res) => {
       color: #64748b;
     }
 
+    /* Scheme / Server & Authorize Container (Fix White Banner) */
+    .swagger-ui .scheme-container {
+      background: transparent !important;
+      box-shadow: none !important;
+      padding: 0 0 20px 0 !important;
+      margin: 0 !important;
+      border: none !important;
+    }
+    .swagger-ui .schemes {
+      padding: 0 !important;
+    }
+    .swagger-ui .schemes-title, .swagger-ui .servers-title {
+      color: #94a3b8 !important;
+      font-size: 13px !important;
+    }
+    .swagger-ui .schemes > label {
+      color: #cbd5e1 !important;
+    }
+
+    /* Container Wrapper */
+    .swagger-ui .wrapper {
+      max-width: 1200px !important;
+      padding: 0 20px 40px 20px !important;
+    }
+
+    /* Filter Input */
+    .swagger-ui .filter .operation-filter-input {
+      background: #0f172a !important;
+      border: 1px solid #334155 !important;
+      color: #f8fafc !important;
+      border-radius: 8px !important;
+      padding: 10px 14px !important;
+      font-family: 'Plus Jakarta Sans', sans-serif !important;
+      margin-bottom: 20px !important;
+    }
+
+    /* Arrow Icons & Toggles */
+    .swagger-ui .arrow, .swagger-ui .expand-methods svg, .swagger-ui .expand-operation svg {
+      fill: #94a3b8 !important;
+    }
+
     /* Operation Block Cards */
     .swagger-ui .opblock {
       border-radius: 12px;
