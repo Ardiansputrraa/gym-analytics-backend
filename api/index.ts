@@ -9,20 +9,7 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 const server: Express = express();
 let isAppReady = false;
-
-// Intercept and redirect Swagger UI static assets to CDN for any URL structure
-server.use((req, res, next) => {
-  if (req.url.includes('swagger-ui.css')) {
-    return res.redirect(302, 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.18.2/swagger-ui.min.css');
-  }
-  if (req.url.includes('swagger-ui-bundle.js')) {
-    return res.redirect(302, 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.18.2/swagger-ui-bundle.min.js');
-  }
-  if (req.url.includes('swagger-ui-standalone-preset.js')) {
-    return res.redirect(302, 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.18.2/swagger-ui-standalone-preset.min.js');
-  }
-  next();
-});
+let swaggerDocument: any = null;
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, new ExpressAdapter(server));
@@ -49,18 +36,55 @@ async function bootstrap() {
     )
     .build();
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document, {
-    customSiteTitle: 'Gym Analytics API Docs',
-    swaggerOptions: {
-      persistAuthorization: true,
-      docExpansion: 'list',
-    },
-  });
+  swaggerDocument = SwaggerModule.createDocument(app, config);
 
   await app.init();
   isAppReady = true;
 }
+
+// Custom Swagger Routes (Zero filesystem dependency, 100% Serverless-safe)
+server.get(['/api/docs-json', '/api/docs/swagger.json'], (_req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.json(swaggerDocument);
+});
+
+server.get(['/api/docs', '/api/docs/'], (_req, res) => {
+  res.setHeader('Content-Type', 'text/html');
+  res.send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Gym Analytics API Docs</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.18.2/swagger-ui.min.css" />
+  <link rel="icon" type="image/png" href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.18.2/favicon-32x32.png" />
+  <style>
+    html { box-sizing: border-box; overflow-y: scroll; }
+    *, *:before, *:after { box-sizing: inherit; }
+    body { margin: 0; background: #fafafa; }
+    .swagger-ui .topbar { display: none; }
+  </style>
+</head>
+<body>
+  <div id="swagger-ui"></div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.18.2/swagger-ui-bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.18.2/swagger-ui-standalone-preset.min.js"></script>
+  <script>
+    window.onload = () => {
+      window.ui = SwaggerUIBundle({
+        url: '/api/docs-json',
+        dom_id: '#swagger-ui',
+        deepLinking: true,
+        presets: [
+          SwaggerUIBundle.presets.apis,
+          SwaggerUIStandalonePreset
+        ],
+        layout: "BaseLayout"
+      });
+    };
+  </script>
+</body>
+</html>`);
+});
 
 export default async function handler(req: any, res: any) {
   if (!isAppReady) {
