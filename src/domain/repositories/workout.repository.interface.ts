@@ -104,6 +104,7 @@ export interface IWorkoutRepository {
 
   findHistory(filter: WorkoutHistoryFilter): Promise<PaginatedWorkouts>;
   getAnalytics(userId: string, timeframe: WorkoutTimeframe, year?: number, month?: number): Promise<WorkoutTelemetryAggregates>;
+  findCompletedByUserIdAndDateRange(userId: string, startDate: Date, endDate: Date): Promise<WorkoutEntity[]>;
   
   // Routine Templates
   findRoutineTemplates(): Promise<RoutineTemplateEntity[]>;

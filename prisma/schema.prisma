@@ -40,6 +40,7 @@ model User {
   workouts         Workout[]
   personalRecords  PersonalRecord[]
   bodyMeasurements BodyMeasurement[]
+  nutritionEntries NutritionEntry[]
 
   @@map("users")
   @@schema("identity")
@@ -438,5 +439,69 @@ model BodyMeasurement {
   @@map("body_measurements")
   @@schema("body")
 }
+
+// ============================================================
+// NUTRITION SCHEMA
+// ============================================================
+
+enum NutritionType {
+  FOOD
+  DRINK
+
+  @@schema("nutrition")
+}
+
+model FoodItem {
+  id                 String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name               String           @unique @db.VarChar(255)
+  type               NutritionType    @default(FOOD)
+  defaultServingUnit String           @default("gram") @map("default_serving_unit") @db.VarChar(50)
+  defaultServingSize Decimal          @default(100.0) @map("default_serving_size") @db.Decimal(8, 2)
+  caloriesPerServing Int              @default(0) @map("calories_per_serving")
+  proteinPerServing  Decimal          @default(0.0) @map("protein_per_serving") @db.Decimal(7, 2)
+  fatPerServing      Decimal          @default(0.0) @map("fat_per_serving") @db.Decimal(7, 2)
+  carbsPerServing    Decimal          @default(0.0) @map("carbs_per_serving") @db.Decimal(7, 2)
+  waterMlPerServing  Int?             @default(0) @map("water_ml_per_serving")
+  isVerified         Boolean          @default(true) @map("is_verified")
+  isDeleted          Boolean          @default(false) @map("is_deleted")
+  deletedAt          DateTime?        @map("deleted_at") @db.Timestamptz(6)
+  createdAt          DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  nutritionEntries   NutritionEntry[]
+
+  @@index([name, isDeleted], name: "idx_food_items_name")
+  @@map("food_items")
+  @@schema("nutrition")
+}
+
+model NutritionEntry {
+  id         String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String        @map("user_id") @db.Uuid
+  foodItemId String?       @map("food_item_id") @db.Uuid
+  consumedAt DateTime      @map("consumed_at") @db.Timestamptz(6)
+  type       NutritionType @default(FOOD)
+  name       String        @db.VarChar(255)
+  calories   Int           @default(0)
+  quantity   Decimal       @default(1.0) @db.Decimal(8, 3)
+  unit       String        @default("porsi") @db.VarChar(50)
+  proteinG   Decimal?      @map("protein_g") @db.Decimal(7, 2)
+  carbsG     Decimal?      @map("carbs_g") @db.Decimal(7, 2)
+  fatG       Decimal?      @map("fat_g") @db.Decimal(7, 2)
+  waterMl    Int?          @map("water_ml")
+  notes      String?       @db.Text
+  isDeleted  Boolean       @default(false) @map("is_deleted")
+  deletedAt  DateTime?     @map("deleted_at") @db.Timestamptz(6)
+  createdAt  DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  foodItem   FoodItem?     @relation(fields: [foodItemId], references: [id])
+
+  @@index([userId, consumedAt, isDeleted], name: "idx_ne_user_date")
+  @@map("nutrition_entries")
+  @@schema("nutrition")
+}
+
 
 

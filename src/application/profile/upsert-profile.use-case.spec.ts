@@ -4,6 +4,7 @@ import { UpsertProfileUseCase } from './upsert-profile.use-case';
 import { USER_REPOSITORY } from '../../domain/repositories/user.repository.interface';
 import { USER_PROFILE_REPOSITORY } from '../../domain/repositories/user-profile.repository.interface';
 import { DAILY_CALORIE_TARGET_REPOSITORY } from '../../domain/repositories/daily-calorie-target.repository.interface';
+import { BODY_MEASUREMENT_REPOSITORY_TOKEN } from '../../domain/repositories/body-measurement.repository.interface';
 import { UserEntity } from '../../domain/entities/user.entity';
 import { UserProfileEntity } from '../../domain/entities/user-profile.entity';
 import { Gender } from '../../domain/enums/gender.enum';
@@ -16,6 +17,12 @@ describe('UpsertProfileUseCase', () => {
   let mockUserRepository: { findById: jest.Mock; update: jest.Mock };
   let mockProfileRepository: { upsert: jest.Mock };
   let mockCalorieTargetRepository: { upsert: jest.Mock };
+  let mockBodyMeasurementRepository: {
+    create: jest.Mock;
+    upsert: jest.Mock;
+    findLatestByUserId: jest.Mock;
+    findPrevious: jest.Mock;
+  };
 
   const mockUser = new UserEntity({
     id: 'user-uuid-1',
@@ -55,6 +62,12 @@ describe('UpsertProfileUseCase', () => {
     mockCalorieTargetRepository = {
       upsert: jest.fn(),
     };
+    mockBodyMeasurementRepository = {
+      create: jest.fn().mockResolvedValue({}),
+      upsert: jest.fn(),
+      findLatestByUserId: jest.fn().mockResolvedValue(null),
+      findPrevious: jest.fn().mockResolvedValue(null),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -64,6 +77,10 @@ describe('UpsertProfileUseCase', () => {
         {
           provide: DAILY_CALORIE_TARGET_REPOSITORY,
           useValue: mockCalorieTargetRepository,
+        },
+        {
+          provide: BODY_MEASUREMENT_REPOSITORY_TOKEN,
+          useValue: mockBodyMeasurementRepository,
         },
       ],
     }).compile();
