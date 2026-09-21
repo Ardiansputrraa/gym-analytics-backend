@@ -101,3 +101,17 @@ export class PersonalRecordEngine {
     return detected;
   }
 }
+
+export class EpleyOneRepMaxCalculator {
+  /**
+   * Calculates estimated 1 Rep Max using the Epley formula: w * (1 + r / 30)
+   * PRD Rule BR-008
+   */
+  static calculate(weightKg: number, reps: number): number {
+    const w = Math.max(0, Number(weightKg) || 0);
+    const r = Math.max(0, Number(reps) || 0);
+    if (w === 0 || r === 0) return 0;
+    if (r === 1) return w;
+    return Number((w * (1 + r / 30)).toFixed(1));
+  }
+}
