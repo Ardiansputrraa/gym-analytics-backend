@@ -9,6 +9,7 @@ import { ExercisesModule } from './modules/exercises/exercises.module';
 import { WorkoutsModule } from './modules/workouts/workouts.module';
 import { BodyModule } from './modules/body/body.module';
 import { NutritionModule } from './modules/nutrition/nutrition.module';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { NutritionModule } from './modules/nutrition/nutrition.module';
     WorkoutsModule,
     BodyModule,
     NutritionModule,
+    AnalyticsModule,
   ],
 })
 export class AppModule {}

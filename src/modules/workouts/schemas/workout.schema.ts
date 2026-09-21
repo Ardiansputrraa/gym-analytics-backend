@@ -30,18 +30,22 @@ export const CreateWorkoutSetSchema = z.object({
 
 export class CreateWorkoutSetDto extends createZodDto(CreateWorkoutSetSchema) {}
 
-export const UpdateWorkoutSetSchema = z.object({
-  weightKg: z.coerce.number().min(0, 'Beban tidak boleh negatif').optional(),
-  reps: z.coerce.number().int().min(0, 'Repetisi tidak boleh negatif').optional(),
-  durationSeconds: z.coerce.number().int().min(0).optional(),
-  restSeconds: z.coerce.number().int().min(0).optional(),
-  inclinePct: z.coerce.number().min(0).max(100).optional().nullable(),
-  speedKmh: z.coerce.number().min(0).max(50).optional().nullable(),
-  distanceKm: z.coerce.number().min(0).optional().nullable(),
-  caloriesBurned: z.coerce.number().int().min(0).optional().nullable(),
-  isCompleted: z.boolean().optional(),
-  rpe: z.coerce.number().min(1).max(10).optional().nullable(),
-});
+export const UpdateWorkoutSetSchema = z
+  .object({
+    weightKg: z.coerce.number().min(0, 'Beban tidak boleh negatif').optional(),
+    reps: z.coerce.number().int().min(0, 'Repetisi tidak boleh negatif').optional(),
+    durationSeconds: z.coerce.number().int().min(0).optional(),
+    restSeconds: z.coerce.number().int().min(0).optional(),
+    inclinePct: z.coerce.number().min(0).max(100).optional().nullable(),
+    speedKmh: z.coerce.number().min(0).max(50).optional().nullable(),
+    distanceKm: z.coerce.number().min(0).optional().nullable(),
+    caloriesBurned: z.coerce.number().int().min(0).optional().nullable(),
+    isCompleted: z.boolean().optional(),
+    completedAt: z.string().datetime().optional().nullable(),
+    orderIndex: z.coerce.number().int().optional(),
+    rpe: z.coerce.number().min(0).max(10).optional().nullable(),
+  })
+  .passthrough();
 
 export class UpdateWorkoutSetDto extends createZodDto(UpdateWorkoutSetSchema) {}
 
