@@ -44,6 +44,8 @@ export interface UpdateSetParams {
   distanceKm?: number | null;
   caloriesBurned?: number | null;
   isCompleted?: boolean;
+  completedAt?: Date | string | null;
+  orderIndex?: number;
   rpe?: number | null;
 }
 

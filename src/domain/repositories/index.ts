@@ -2,3 +2,8 @@ export * from './user.repository.interface';
 export * from './otp-token.repository.interface';
 export * from './user-profile.repository.interface';
 export * from './daily-calorie-target.repository.interface';
+export * from './exercise.repository.interface';
+export * from './workout.repository.interface';
+export * from './body-measurement.repository.interface';
+export * from './nutrition.repository.interface';
+export * from './analytics.repository.interface';
